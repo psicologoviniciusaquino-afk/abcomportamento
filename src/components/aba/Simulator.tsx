@@ -5,10 +5,10 @@ import { FlaskConical, Play, Trash2, Info } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Cell } from "recharts";
 
 const CONDITIONS: { key: FASession["condition"]; label: string; desc: string; color: string }[] = [
-  { key: "Attention", label: "Attention", desc: "Therapist withholds attention; delivers attention contingent on behavior.", color: "var(--chart-1)" },
-  { key: "Demand", label: "Demand / Escape", desc: "Present academic/task demands; remove demand contingent on behavior.", color: "var(--chart-2)" },
-  { key: "Tangible", label: "Tangible", desc: "Preferred item restricted; delivered contingent on behavior.", color: "var(--chart-3)" },
-  { key: "Play", label: "Control / Play", desc: "Free access to attention & items; no demands. Baseline.", color: "var(--chart-4)" },
+  { key: "Attention", label: "Atenção", desc: "Terapeuta retém atenção; libera atenção contingente ao comportamento.", color: "var(--chart-1)" },
+  { key: "Demand", label: "Demanda / Fuga", desc: "Apresenta tarefas; remove a demanda contingente ao comportamento.", color: "var(--chart-2)" },
+  { key: "Tangible", label: "Tangível", desc: "Item preferido é restringido; entregue contingente ao comportamento.", color: "var(--chart-3)" },
+  { key: "Play", label: "Controle / Brincar", desc: "Acesso livre a atenção e itens; sem demandas. Linha de base.", color: "var(--chart-4)" },
 ];
 
 export function Simulator() {
@@ -24,8 +24,9 @@ export function Simulator() {
       createdAt: new Date().toISOString(),
     };
     add(s);
-    toast.success(`${condition} session recorded`, {
-      description: `Rate: ${(frequency / duration).toFixed(2)} responses/min`,
+    const label = CONDITIONS.find((c) => c.key === condition)?.label;
+    toast.success(`Sessão de ${label} registrada`, {
+      description: `Taxa: ${(frequency / duration).toFixed(2)} respostas/min`,
     });
   };
 
@@ -41,17 +42,17 @@ export function Simulator() {
     };
   });
 
-  const elevated = grouped.filter((g) => g.condition !== "Control" && g.condition !== "Play");
+  const elevated = grouped.filter((g) => g.condition !== "Controle" && g.condition !== "Brincar");
   const maxRate = Math.max(...elevated.map((g) => g.rate), 0);
   const winner = maxRate > 0 ? elevated.find((g) => g.rate === maxRate)?.condition : null;
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Functional Analysis Simulator</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Simulador de Análise Funcional</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-          The experimental "gold standard" (Iwata et al., 1982/1994): systematically manipulate
-          antecedents and consequences across conditions to identify the variable that maintains behavior.
+          O "padrão-ouro" experimental (Iwata et al., 1982/1994): manipule antecedentes e
+          consequências em diferentes condições para identificar a variável que mantém o comportamento.
         </p>
       </header>
 
@@ -59,19 +60,17 @@ export function Simulator() {
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-5">
           <div className="flex items-center gap-2">
             <FlaskConical className="size-4 text-primary" />
-            <h2 className="font-semibold">Run a Condition Session</h2>
+            <h2 className="font-semibold">Executar Sessão de Condição</h2>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             {CONDITIONS.map((c) => (
-              <button
-                key={c.key} onClick={() => setCondition(c.key)}
+              <button key={c.key} onClick={() => setCondition(c.key)}
                 className={`text-left rounded-xl border p-3 transition-all ${
                   condition === c.key
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "border-border hover:border-primary/40"
-                }`}
-              >
+                }`}>
                 <div className="text-sm font-medium">{c.label}</div>
                 <div className="text-[11px] text-muted-foreground mt-1 leading-snug">{c.desc}</div>
               </button>
@@ -80,7 +79,7 @@ export function Simulator() {
 
           <div>
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Duration: {duration} min
+              Duração: {duration} min
             </label>
             <input type="range" min={1} max={30} value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
@@ -89,7 +88,7 @@ export function Simulator() {
 
           <div>
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Observed Frequency: {frequency} responses
+              Frequência observada: {frequency} respostas
             </label>
             <input type="range" min={0} max={60} value={frequency}
               onChange={(e) => setFrequency(Number(e.target.value))}
@@ -98,21 +97,21 @@ export function Simulator() {
 
           <div className="flex items-center justify-between pt-2">
             <div className="text-xs text-muted-foreground">
-              Rate: <span className="font-medium text-foreground">{(frequency / duration).toFixed(2)}</span> /min
+              Taxa: <span className="font-medium text-foreground">{(frequency / duration).toFixed(2)}</span> /min
             </div>
             <button onClick={run} className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90">
-              <Play className="size-4" /> Run Session
+              <Play className="size-4" /> Executar Sessão
             </button>
           </div>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold">Response Rate Across Conditions</h2>
+            <h2 className="font-semibold">Taxa de Respostas por Condição</h2>
             {sessions.length > 0 && (
-              <button onClick={() => { clear(); toast.success("Sessions cleared"); }}
+              <button onClick={() => { clear(); toast.success("Sessões removidas"); }}
                 className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1">
-                <Trash2 className="size-3" /> Clear
+                <Trash2 className="size-3" /> Limpar
               </button>
             )}
           </div>
@@ -133,11 +132,11 @@ export function Simulator() {
             <Info className="size-4 shrink-0 mt-0.5 text-primary" />
             {winner ? (
               <span>
-                Highest rate observed in <strong className="text-foreground">{winner}</strong>.
-                If elevated vs. Play, the behavior is likely maintained by this consequence.
+                Maior taxa observada em <strong className="text-foreground">{winner}</strong>.
+                Se elevada em relação a Brincar, o comportamento provavelmente é mantido por essa consequência.
               </span>
             ) : (
-              <span>Run sessions across all four conditions to identify the maintaining variable.</span>
+              <span>Execute sessões nas quatro condições para identificar a variável mantenedora.</span>
             )}
           </div>
         </div>

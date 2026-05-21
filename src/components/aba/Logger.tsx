@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { Trash2, Plus, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ANT_TAGS = ["Demand placed", "Left alone", "Item denied", "Transition"];
-const CON_TAGS = ["Demand removed", "Attention given", "Item provided", "Ignored"];
+const ANT_TAGS = ["Demanda apresentada", "Deixado sozinho", "Item negado", "Transição"];
+const CON_TAGS = ["Demanda removida", "Atenção dada", "Item fornecido", "Ignorado"];
 
 export function Logger() {
   const { logs, add, remove } = useLogs();
@@ -23,7 +23,7 @@ export function Logger() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!behavior.trim()) {
-      toast.error("Please describe the behavior.");
+      toast.error("Descreva o comportamento.");
       return;
     }
     const log: ABCLog = {
@@ -38,7 +38,7 @@ export function Logger() {
       hypothesizedFunction: inferFunctionFromTags([...antTags, ...conTags]),
     };
     add(log);
-    toast.success("Log saved", { description: `Hypothesis: ${log.hypothesizedFunction}` });
+    toast.success("Registro salvo", { description: `Hipótese: ${log.hypothesizedFunction}` });
     setAntecedent(""); setBehavior(""); setConsequence("");
     setAntTags([]); setConTags([]); setSeverity(3);
     setTimestamp(new Date().toISOString().slice(0, 16));
@@ -47,80 +47,67 @@ export function Logger() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">ABC Data Logger</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Registro ABC</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Direct observation: capture antecedents, behaviors, and consequences.
+          Observação direta: registre antecedentes, comportamentos e consequências.
         </p>
       </header>
 
       <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm space-y-5">
         <div className="grid md:grid-cols-2 gap-4">
-          <Field label="Timestamp">
-            <input
-              type="datetime-local"
-              value={timestamp}
-              onChange={(e) => setTimestamp(e.target.value)}
-              className="input"
-            />
+          <Field label="Data e Hora">
+            <input type="datetime-local" value={timestamp} onChange={(e) => setTimestamp(e.target.value)} className="input" />
           </Field>
-          <Field label={`Severity: ${severity}/5`}>
-            <input
-              type="range" min={1} max={5} value={severity}
+          <Field label={`Severidade: ${severity}/5`}>
+            <input type="range" min={1} max={5} value={severity}
               onChange={(e) => setSeverity(Number(e.target.value))}
-              className="w-full accent-[var(--primary)]"
-            />
+              className="w-full accent-[var(--primary)]" />
           </Field>
         </div>
 
-        <Field label="Antecedent (A)">
-          <textarea
-            value={antecedent} onChange={(e) => setAntecedent(e.target.value)}
-            rows={2} placeholder="What happened right before..." className="input"
-          />
+        <Field label="Antecedente (A)">
+          <textarea value={antecedent} onChange={(e) => setAntecedent(e.target.value)}
+            rows={2} placeholder="O que aconteceu logo antes..." className="input" />
           <TagRow tags={ANT_TAGS} active={antTags} onToggle={(t) => toggle(antTags, setAntTags, t)} />
         </Field>
 
-        <Field label="Behavior (B)">
-          <textarea
-            value={behavior} onChange={(e) => setBehavior(e.target.value)}
-            rows={2} placeholder="Observable, measurable behavior..." className="input"
-          />
+        <Field label="Comportamento (B)">
+          <textarea value={behavior} onChange={(e) => setBehavior(e.target.value)}
+            rows={2} placeholder="Comportamento observável e mensurável..." className="input" />
         </Field>
 
-        <Field label="Consequence (C)">
-          <textarea
-            value={consequence} onChange={(e) => setConsequence(e.target.value)}
-            rows={2} placeholder="What followed the behavior..." className="input"
-          />
+        <Field label="Consequência (C)">
+          <textarea value={consequence} onChange={(e) => setConsequence(e.target.value)}
+            rows={2} placeholder="O que ocorreu após o comportamento..." className="input" />
           <TagRow tags={CON_TAGS} active={conTags} onToggle={(t) => toggle(conTags, setConTags, t)} />
         </Field>
 
         <div className="flex justify-end">
           <button type="submit" className="btn-primary">
-            <Save className="size-4" /> Save Log
+            <Save className="size-4" /> Salvar Registro
           </button>
         </div>
       </form>
 
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="font-semibold">Recent Logs</h2>
-          <span className="text-xs text-muted-foreground">{logs.length} total</span>
+          <h2 className="font-semibold">Registros Recentes</h2>
+          <span className="text-xs text-muted-foreground">{logs.length} no total</span>
         </div>
         {logs.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">
             <Plus className="size-6 mx-auto mb-2 opacity-50" />
-            No logs yet — your first entry will appear here.
+            Nenhum registro ainda — seu primeiro aparecerá aqui.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wide">
                 <tr>
-                  <th className="text-left px-4 py-3">Time</th>
-                  <th className="text-left px-4 py-3">Behavior</th>
+                  <th className="text-left px-4 py-3">Quando</th>
+                  <th className="text-left px-4 py-3">Comportamento</th>
                   <th className="text-left px-4 py-3">Sev</th>
-                  <th className="text-left px-4 py-3">Function</th>
+                  <th className="text-left px-4 py-3">Função</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -128,14 +115,14 @@ export function Logger() {
                 {logs.map((l) => (
                   <tr key={l.id} className="border-t border-border hover:bg-muted/30">
                     <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                      {new Date(l.timestamp).toLocaleString()}
+                      {new Date(l.timestamp).toLocaleString("pt-BR")}
                     </td>
                     <td className="px-4 py-3 max-w-xs truncate">{l.behavior}</td>
                     <td className="px-4 py-3">{l.severity}</td>
                     <td className="px-4 py-3">
                       <span className={cn(
                         "px-2 py-0.5 rounded-full text-xs font-medium",
-                        l.hypothesizedFunction === "Pending"
+                        l.hypothesizedFunction === "Pendente"
                           ? "bg-warning/15 text-warning-foreground"
                           : "bg-primary/10 text-primary"
                       )}>
@@ -144,7 +131,7 @@ export function Logger() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => { remove(l.id); toast.success("Log deleted"); }}
+                        onClick={() => { remove(l.id); toast.success("Registro excluído"); }}
                         className="text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <Trash2 className="size-4" />
@@ -200,15 +187,13 @@ function TagRow({ tags, active, onToggle }: { tags: string[]; active: string[]; 
       {tags.map((t) => {
         const on = active.includes(t);
         return (
-          <button
-            type="button" key={t} onClick={() => onToggle(t)}
+          <button type="button" key={t} onClick={() => onToggle(t)}
             className={cn(
               "text-xs px-2.5 py-1 rounded-full border transition-colors",
               on
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-            )}
-          >
+            )}>
             {t}
           </button>
         );
