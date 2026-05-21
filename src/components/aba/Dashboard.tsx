@@ -1,18 +1,19 @@
 import { ABCLog, FASession } from "@/lib/aba-store";
-import { Activity, Target, HelpCircle, TrendingUp } from "lucide-react";
+import { Activity, Target, HelpCircle, TrendingUp, FileDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { exportPdf } from "@/lib/aba-pdf";
+import { toast } from "sonner";
 
 export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASession[] }) {
   const total = logs.length;
-  const pending = logs.filter((l) => !l.hypothesizedFunction || l.hypothesizedFunction === "Pending").length;
+  const pending = logs.filter((l) => !l.hypothesizedFunction || l.hypothesizedFunction === "Pendente").length;
   const counts: Record<string, number> = {};
   logs.forEach((l) => {
-    if (l.hypothesizedFunction && l.hypothesizedFunction !== "Pending") {
+    if (l.hypothesizedFunction && l.hypothesizedFunction !== "Pendente") {
       counts[l.hypothesizedFunction] = (counts[l.hypothesizedFunction] ?? 0) + 1;
     }
   });
-  const mostFrequent =
-    Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+  const mostFrequent = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
   const conditionTotals: Record<string, { condition: string; rate: number }> = {};
   sessions.forEach((s) => {
@@ -20,33 +21,49 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
     if (!conditionTotals[s.condition]) conditionTotals[s.condition] = { condition: s.condition, rate: 0 };
     conditionTotals[s.condition].rate = Math.max(conditionTotals[s.condition].rate, rate);
   });
+  const labels: Record<string, string> = { Attention: "Atenção", Demand: "Demanda", Tangible: "Tangível", Play: "Brincar" };
   const chartData = ["Attention", "Demand", "Tangible", "Play"].map((c) => ({
-    condition: c,
+    condition: labels[c],
     rate: Number((conditionTotals[c]?.rate ?? 0).toFixed(2)),
   }));
 
   const stats = [
-    { label: "Behaviors Logged", value: total, icon: Activity, tone: "text-chart-1 bg-chart-1/10" },
-    { label: "Most Frequent Function", value: mostFrequent, icon: Target, tone: "text-chart-3 bg-chart-3/10" },
-    { label: "Pending Hypotheses", value: pending, icon: HelpCircle, tone: "text-chart-2 bg-chart-2/10" },
+    { label: "Comportamentos Registrados", value: total, icon: Activity, tone: "text-chart-1 bg-chart-1/10" },
+    { label: "Função Mais Frequente", value: mostFrequent, icon: Target, tone: "text-chart-3 bg-chart-3/10" },
+    { label: "Hipóteses Pendentes", value: pending, icon: HelpCircle, tone: "text-chart-2 bg-chart-2/10" },
   ];
+
+  const handleExport = () => {
+    if (logs.length === 0 && sessions.length === 0) {
+      toast.error("Nenhum dado para exportar.");
+      return;
+    }
+    exportPdf(logs, sessions);
+    toast.success("PDF gerado com sucesso!");
+  };
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Clinical Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          A quick snapshot of observation and experimental data.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Painel Clínico</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Resumo das observações e dados experimentais.
+          </p>
+        </div>
+        <button
+          onClick={handleExport}
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm"
+        >
+          <FileDown className="size-4" /> Exportar PDF
+        </button>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map(({ label, value, icon: Icon, tone }) => (
           <div key={label} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div className={`size-10 rounded-xl grid place-items-center ${tone}`}>
-                <Icon className="size-5" />
-              </div>
+            <div className={`size-10 rounded-xl grid place-items-center ${tone}`}>
+              <Icon className="size-5" />
             </div>
             <div className="mt-4 text-2xl font-semibold">{value}</div>
             <div className="text-xs text-muted-foreground mt-1">{label}</div>
@@ -57,7 +74,7 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="size-4 text-primary" />
-          <h2 className="font-semibold">FA Conditions — Peak Response Rate (per min)</h2>
+          <h2 className="font-semibold">Condições da AF — Taxa de Resposta (por min)</h2>
         </div>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -79,7 +96,7 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
         </div>
         {sessions.length === 0 && (
           <p className="text-xs text-muted-foreground mt-3">
-            Run sessions in the FA Simulator to populate this chart.
+            Execute sessões no Simulador AF para preencher este gráfico.
           </p>
         )}
       </div>

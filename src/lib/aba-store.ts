@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type FunctionType = "Attention" | "Escape" | "Tangible" | "Sensory";
+export type FunctionType = "Atenção" | "Fuga" | "Tangível" | "Sensorial";
 
 export interface ABCLog {
   id: string;
@@ -11,7 +11,7 @@ export interface ABCLog {
   severity: number;
   consequence: string;
   consequenceTags: string[];
-  hypothesizedFunction?: FunctionType | "Pending";
+  hypothesizedFunction?: FunctionType | "Pendente";
 }
 
 export interface FASession {
@@ -70,11 +70,11 @@ export function useFASessions() {
   };
 }
 
-export function inferFunctionFromTags(tags: string[]): FunctionType | "Pending" {
+export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente" {
   const t = tags.map((x) => x.toLowerCase()).join(" ");
-  if (t.includes("attention")) return "Attention";
-  if (t.includes("demand") || t.includes("escape")) return "Escape";
-  if (t.includes("item") || t.includes("tangible")) return "Tangible";
-  if (t.includes("alone") || t.includes("ignored")) return "Sensory";
-  return "Pending";
+  if (t.includes("atenção")) return "Atenção";
+  if (t.includes("demanda") || t.includes("fuga")) return "Fuga";
+  if (t.includes("item") || t.includes("tangível")) return "Tangível";
+  if (t.includes("sozinho") || t.includes("ignorado")) return "Sensorial";
+  return "Pendente";
 }

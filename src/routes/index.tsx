@@ -12,8 +12,8 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "ABC Behavior Tracker & FA Simulator" },
-      { name: "description", content: "Log ABC observations and run simulated functional analyses for ABA practice and training." },
+      { title: "Rastreador ABC & Simulador de Análise Funcional" },
+      { name: "description", content: "Registre observações ABC e simule análises funcionais para prática e ensino em ABA." },
     ],
   }),
 });
