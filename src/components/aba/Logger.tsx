@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ABCLog, inferFunctionFromTags, useLogs, useChildren } from "@/lib/aba-store";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, X } from "lucide-react";
+import { Trash2, Plus, Save, X, Play, Pause, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const SESSION_MINUTES = 50;
+const SESSION_SECONDS = SESSION_MINUTES * 60;
 
 const ANT_TAGS = ["Demanda apresentada", "Deixado sozinho", "Item negado", "Transição"];
 const CON_TAGS = ["Demanda removida", "Atenção dada", "Item fornecido", "Ignorado"];
