@@ -5,6 +5,10 @@ export type FunctionType = "Atenção" | "Fuga" | "Tangível" | "Sensorial";
 export interface ABCLog {
   id: string;
   timestamp: string;
+  childName?: string;
+  targetBehavior?: string;
+  environmentTags?: string[];
+  environmentNotes?: string;
   antecedent: string;
   antecedentTags: string[];
   behavior: string;
@@ -67,6 +71,26 @@ export function useFASessions() {
     sessions,
     add: (s: FASession) => save([s, ...sessions]),
     clear: () => save([]),
+  };
+}
+
+const CHILDREN_KEY = "aba.children.v1";
+
+export function useChildren() {
+  const [children, setChildren] = useState<string[]>([]);
+  useEffect(() => setChildren(read<string[]>(CHILDREN_KEY, [])), []);
+  const save = (next: string[]) => {
+    setChildren(next);
+    write(CHILDREN_KEY, next);
+  };
+  return {
+    children,
+    add: (name: string) => {
+      const n = name.trim();
+      if (!n || children.includes(n)) return;
+      save([n, ...children]);
+    },
+    remove: (name: string) => save(children.filter((c) => c !== name)),
   };
 }
 
