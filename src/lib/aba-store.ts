@@ -74,6 +74,26 @@ export function useFASessions() {
   };
 }
 
+const CHILDREN_KEY = "aba.children.v1";
+
+export function useChildren() {
+  const [children, setChildren] = useState<string[]>([]);
+  useEffect(() => setChildren(read<string[]>(CHILDREN_KEY, [])), []);
+  const save = (next: string[]) => {
+    setChildren(next);
+    write(CHILDREN_KEY, next);
+  };
+  return {
+    children,
+    add: (name: string) => {
+      const n = name.trim();
+      if (!n || children.includes(n)) return;
+      save([n, ...children]);
+    },
+    remove: (name: string) => save(children.filter((c) => c !== name)),
+  };
+}
+
 export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente" {
   const t = tags.map((x) => x.toLowerCase()).join(" ");
   if (t.includes("atenção")) return "Atenção";
