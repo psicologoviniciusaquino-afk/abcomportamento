@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { FASession, useFASessions } from "@/lib/aba-store";
+import { FASession, useFASessions, useLogs } from "@/lib/aba-store";
+import { exportPdf } from "@/lib/aba-pdf";
 import { toast } from "sonner";
-import { FlaskConical, Play, Trash2, Info } from "lucide-react";
+import { FlaskConical, Play, Trash2, Info, FileDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Cell } from "recharts";
 
 const CONDITIONS: { key: FASession["condition"]; label: string; desc: string; color: string }[] = [
