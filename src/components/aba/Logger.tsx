@@ -89,6 +89,8 @@ export function Logger() {
         </p>
       </header>
 
+      <SessionTimer />
+
       <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm space-y-5">
         <div className="grid md:grid-cols-2 gap-4">
           <Field label="Criança">
