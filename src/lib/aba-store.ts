@@ -5,6 +5,10 @@ export type FunctionType = "Atenção" | "Fuga" | "Tangível" | "Sensorial";
 export interface ABCLog {
   id: string;
   timestamp: string;
+  childName?: string;
+  targetBehavior?: string;
+  environmentTags?: string[];
+  environmentNotes?: string;
   antecedent: string;
   antecedentTags: string[];
   behavior: string;
