@@ -1,15 +1,33 @@
 import { useState } from "react";
-import { ABCLog, inferFunctionFromTags, useLogs } from "@/lib/aba-store";
+import { ABCLog, inferFunctionFromTags, useLogs, useChildren } from "@/lib/aba-store";
 import { toast } from "sonner";
-import { Trash2, Plus, Save } from "lucide-react";
+import { Trash2, Plus, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ANT_TAGS = ["Demanda apresentada", "Deixado sozinho", "Item negado", "Transição"];
 const CON_TAGS = ["Demanda removida", "Atenção dada", "Item fornecido", "Ignorado"];
+const ENV_TAGS = [
+  "Ambiente barulhento",
+  "Muitas pessoas",
+  "Iluminação intensa",
+  "Mudança de rotina",
+  "Cansaço/sono",
+  "Fome",
+  "Calor/frio",
+  "Espaço restrito",
+  "Presença de estranhos",
+  "Sem acesso a reforçador",
+];
 
 export function Logger() {
   const { logs, add, remove } = useLogs();
+  const { children, add: addChild, remove: removeChild } = useChildren();
   const [timestamp, setTimestamp] = useState(() => new Date().toISOString().slice(0, 16));
+  const [childName, setChildName] = useState("");
+  const [newChild, setNewChild] = useState("");
+  const [targetBehavior, setTargetBehavior] = useState("");
+  const [envTags, setEnvTags] = useState<string[]>([]);
+  const [envNotes, setEnvNotes] = useState("");
   const [antecedent, setAntecedent] = useState("");
   const [antTags, setAntTags] = useState<string[]>([]);
   const [behavior, setBehavior] = useState("");
@@ -20,6 +38,15 @@ export function Logger() {
   const toggle = (arr: string[], setArr: (v: string[]) => void, tag: string) =>
     setArr(arr.includes(tag) ? arr.filter((x) => x !== tag) : [...arr, tag]);
 
+  const handleAddChild = () => {
+    const n = newChild.trim();
+    if (!n) return;
+    addChild(n);
+    setChildName(n);
+    setNewChild("");
+    toast.success("Criança adicionada");
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!behavior.trim()) {
@@ -29,6 +56,10 @@ export function Logger() {
     const log: ABCLog = {
       id: crypto.randomUUID(),
       timestamp,
+      childName: childName || undefined,
+      targetBehavior: targetBehavior || undefined,
+      environmentTags: envTags,
+      environmentNotes: envNotes || undefined,
       antecedent,
       antecedentTags: antTags,
       behavior,
@@ -41,6 +72,8 @@ export function Logger() {
     toast.success("Registro salvo", { description: `Hipótese: ${log.hypothesizedFunction}` });
     setAntecedent(""); setBehavior(""); setConsequence("");
     setAntTags([]); setConTags([]); setSeverity(3);
+    setEnvTags([]); setEnvNotes("");
+    setTargetBehavior("");
     setTimestamp(new Date().toISOString().slice(0, 16));
   };
 
@@ -55,9 +88,48 @@ export function Logger() {
 
       <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm space-y-5">
         <div className="grid md:grid-cols-2 gap-4">
+          <Field label="Criança">
+            <div className="flex gap-2">
+              <select value={childName} onChange={(e) => setChildName(e.target.value)} className="input flex-1">
+                <option value="">— Selecionar —</option>
+                {children.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {childName && (
+                <button type="button" onClick={() => { removeChild(childName); setChildName(""); }}
+                  className="text-xs text-muted-foreground hover:text-destructive px-2" title="Remover da lista">
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <input value={newChild} onChange={(e) => setNewChild(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddChild(); } }}
+                placeholder="Adicionar nova criança..." className="input flex-1" />
+              <button type="button" onClick={handleAddChild} className="btn-secondary">
+                <Plus className="size-4" />
+              </button>
+            </div>
+          </Field>
           <Field label="Data e Hora">
             <input type="datetime-local" value={timestamp} onChange={(e) => setTimestamp(e.target.value)} className="input" />
           </Field>
+        </div>
+
+        <Field label="Comportamento-alvo">
+          <input value={targetBehavior} onChange={(e) => setTargetBehavior(e.target.value)}
+            placeholder="Ex.: agressão, autolesão, birra, fuga..." className="input" />
+        </Field>
+
+        <Field label="Fatores Ambientais / Contexto Externo">
+          <TagRow tags={ENV_TAGS} active={envTags} onToggle={(t) => toggle(envTags, setEnvTags, t)} />
+          <textarea value={envNotes} onChange={(e) => setEnvNotes(e.target.value)}
+            rows={2} placeholder="Outras observações do ambiente (local, pessoas presentes, eventos prévios)..."
+            className="input mt-2" />
+        </Field>
+
+        <div className="grid md:grid-cols-1 gap-4">
           <Field label={`Severidade: ${severity}/5`}>
             <input type="range" min={1} max={5} value={severity}
               onChange={(e) => setSeverity(Number(e.target.value))}
@@ -105,6 +177,7 @@ export function Logger() {
               <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wide">
                 <tr>
                   <th className="text-left px-4 py-3">Quando</th>
+                  <th className="text-left px-4 py-3">Criança</th>
                   <th className="text-left px-4 py-3">Comportamento</th>
                   <th className="text-left px-4 py-3">Sev</th>
                   <th className="text-left px-4 py-3">Função</th>
@@ -117,6 +190,7 @@ export function Logger() {
                     <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                       {new Date(l.timestamp).toLocaleString("pt-BR")}
                     </td>
+                    <td className="px-4 py-3 whitespace-nowrap">{l.childName ?? "—"}</td>
                     <td className="px-4 py-3 max-w-xs truncate">{l.behavior}</td>
                     <td className="px-4 py-3">{l.severity}</td>
                     <td className="px-4 py-3">
@@ -167,6 +241,15 @@ export function Logger() {
         }
         .btn-primary:hover { opacity: .92; }
         .btn-primary:active { transform: translateY(1px); }
+        .btn-secondary {
+          display: inline-flex; align-items: center; gap: .5rem;
+          background: var(--secondary); color: var(--secondary-foreground);
+          padding: .55rem .75rem; border-radius: .625rem;
+          font-size: .875rem; font-weight: 500;
+          border: 1px solid var(--border);
+          transition: opacity .15s;
+        }
+        .btn-secondary:hover { opacity: .85; }
       `}</style>
     </div>
   );
