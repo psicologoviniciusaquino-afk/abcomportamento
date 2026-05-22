@@ -14,6 +14,7 @@ const CONDITIONS: { key: FASession["condition"]; label: string; desc: string; co
 
 export function Simulator() {
   const { sessions, add, clear } = useFASessions();
+  const { logs } = useLogs();
   const [condition, setCondition] = useState<FASession["condition"]>("Attention");
   const [duration, setDuration] = useState(10);
   const [frequency, setFrequency] = useState(5);
@@ -29,6 +30,15 @@ export function Simulator() {
     toast.success(`Sessão de ${label} registrada`, {
       description: `Taxa: ${(frequency / duration).toFixed(2)} respostas/min`,
     });
+    // Exportar PDF automaticamente
+    try {
+      exportPdf(logs, [...sessions, s]);
+      toast.success("PDF exportado automaticamente", {
+        icon: <FileDown className="size-4" />,
+      });
+    } catch {
+      toast.error("Falha ao exportar PDF automaticamente");
+    }
   };
 
   const grouped = CONDITIONS.map((c) => {
