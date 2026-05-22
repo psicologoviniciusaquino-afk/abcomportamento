@@ -260,6 +260,85 @@ export function Logger() {
   );
 }
 
+function SessionTimer() {
+  const [remaining, setRemaining] = useState(SESSION_SECONDS);
+  const [running, setRunning] = useState(false);
+  const endedRef = useRef(false);
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setRemaining((r) => {
+        if (r <= 1) {
+          clearInterval(id);
+          setRunning(false);
+          if (!endedRef.current) {
+            endedRef.current = true;
+            toast.success("Sessão de 50 min concluída", { description: "Tempo encerrado." });
+            try {
+              if (typeof window !== "undefined" && "Notification" in window) {
+                // best-effort, no permission prompt
+              }
+              const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+              const o = ctx.createOscillator(); const g = ctx.createGain();
+              o.connect(g); g.connect(ctx.destination);
+              o.frequency.value = 880; g.gain.value = 0.1;
+              o.start(); setTimeout(() => { o.stop(); ctx.close(); }, 400);
+            } catch {}
+          }
+          return 0;
+        }
+        return r - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const start = () => {
+    if (remaining === 0) { setRemaining(SESSION_SECONDS); endedRef.current = false; }
+    setRunning(true);
+  };
+  const pause = () => setRunning(false);
+  const reset = () => { setRunning(false); setRemaining(SESSION_SECONDS); endedRef.current = false; };
+
+  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const ss = String(remaining % 60).padStart(2, "0");
+  const pct = ((SESSION_SECONDS - remaining) / SESSION_SECONDS) * 100;
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <Timer className="size-5" />
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Sessão de 50 min</div>
+            <div className="text-2xl font-semibold tabular-nums">{mm}:{ss}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {!running ? (
+            <button type="button" onClick={start} className="btn-primary">
+              <Play className="size-4" /> {remaining === SESSION_SECONDS ? "Iniciar" : "Retomar"}
+            </button>
+          ) : (
+            <button type="button" onClick={pause} className="btn-secondary">
+              <Pause className="size-4" /> Pausar
+            </button>
+          )}
+          <button type="button" onClick={reset} className="btn-secondary" title="Reiniciar">
+            <RotateCcw className="size-4" />
+          </button>
+        </div>
+      </div>
+      <div className="mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+        <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
