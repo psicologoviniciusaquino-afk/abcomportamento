@@ -39,18 +39,21 @@ export function exportPdf(logs: ABCLog[], sessions: FASession[]) {
   doc.text("Registros ABC", 14, 72);
   autoTable(doc, {
     startY: 76,
-    head: [["Data/Hora", "Antecedente", "Comportamento", "Consequência", "Sev.", "Função"]],
+    head: [["Data/Hora", "Criança", "Alvo", "Ambiente", "Antecedente", "Comportamento", "Consequência", "Sev.", "Função"]],
     body: logs.map((l) => [
       new Date(l.timestamp).toLocaleString("pt-BR"),
+      l.childName ?? "—",
+      l.targetBehavior ?? "—",
+      [l.environmentTags?.join(", "), l.environmentNotes].filter(Boolean).join(" — ") || "—",
       [l.antecedent, l.antecedentTags.join(", ")].filter(Boolean).join(" — "),
       l.behavior,
       [l.consequence, l.consequenceTags.join(", ")].filter(Boolean).join(" — "),
       String(l.severity),
       l.hypothesizedFunction ?? "Pendente",
     ]),
-    styles: { fontSize: 8, cellPadding: 2 },
+    styles: { fontSize: 7, cellPadding: 2 },
     headStyles: { fillColor: [38, 110, 130], textColor: 255 },
-    columnStyles: { 0: { cellWidth: 28 }, 4: { cellWidth: 10, halign: "center" } },
+    columnStyles: { 0: { cellWidth: 22 }, 7: { cellWidth: 9, halign: "center" } },
   });
 
   // FA Sessions
