@@ -7,8 +7,45 @@ import { cn } from "@/lib/utils";
 const SESSION_MINUTES = 50;
 const SESSION_SECONDS = SESSION_MINUTES * 60;
 
-const ANT_TAGS = ["Demanda apresentada", "Deixado sozinho", "Item negado", "Transição"];
-const CON_TAGS = ["Demanda removida", "Atenção dada", "Item fornecido", "Ignorado"];
+const ANT_GROUPS: { category: string; hint: string; tags: string[] }[] = [
+  {
+    category: "Demandas (Fuga/Esquiva)",
+    hint: "Pistas de função de fuga",
+    tags: ["Demanda acadêmica", "Demanda de rotina", "Transição de atividade"],
+  },
+  {
+    category: "Sociais (Atenção/Tangível)",
+    hint: "Pistas de atenção ou tangível",
+    tags: ["Retirada de atenção", "Restrição de acesso", "Atraso/espera por item"],
+  },
+  {
+    category: "Ambientais / Orgânicos (Sensorial)",
+    hint: "Pistas de função automática",
+    tags: ["Excesso de estímulos (barulho/luz)", "Sozinho / sem demandas", "Desconforto físico (fome, sono, dor)"],
+  },
+];
+const CON_GROUPS: { category: string; hint: string; tags: string[] }[] = [
+  {
+    category: "Reforço Positivo Social (Atenção)",
+    hint: "→ Função Atenção",
+    tags: ["Atenção verbal direta (bronca/consolo)", "Contato físico / proximidade"],
+  },
+  {
+    category: "Reforço Positivo Material (Tangível)",
+    hint: "→ Função Tangível",
+    tags: ["Entrega do objeto/alimento preferido"],
+  },
+  {
+    category: "Reforço Negativo (Fuga/Esquiva)",
+    hint: "→ Função Fuga",
+    tags: ["Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente"],
+  },
+  {
+    category: "Reforço Automático (Sensorial)",
+    hint: "→ Função Sensorial",
+    tags: ["Nenhuma consequência social visível"],
+  },
+];
 const ENV_TAGS = [
   "Ambiente barulhento",
   "Muitas pessoas",
@@ -145,7 +182,7 @@ export function Logger() {
         <Field label="Antecedente (A)">
           <textarea value={antecedent} onChange={(e) => setAntecedent(e.target.value)}
             rows={2} placeholder="O que aconteceu logo antes..." className="input" />
-          <TagRow tags={ANT_TAGS} active={antTags} onToggle={(t) => toggle(antTags, setAntTags, t)} />
+          <TagGroups groups={ANT_GROUPS} active={antTags} onToggle={(t) => toggle(antTags, setAntTags, t)} />
         </Field>
 
         <Field label="Comportamento (B)">
@@ -156,7 +193,7 @@ export function Logger() {
         <Field label="Consequência (C)">
           <textarea value={consequence} onChange={(e) => setConsequence(e.target.value)}
             rows={2} placeholder="O que ocorreu após o comportamento..." className="input" />
-          <TagRow tags={CON_TAGS} active={conTags} onToggle={(t) => toggle(conTags, setConTags, t)} />
+          <TagGroups groups={CON_GROUPS} active={conTags} onToggle={(t) => toggle(conTags, setConTags, t)} />
         </Field>
 
         <div className="flex justify-end">
