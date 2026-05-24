@@ -1,6 +1,9 @@
 import { ABCLog, FASession } from "@/lib/aba-store";
-import { Activity, Target, HelpCircle, TrendingUp, FileDown } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { Activity, Target, HelpCircle, TrendingUp, FileDown, CalendarClock } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
+  ScatterChart, Scatter, ZAxis,
+} from "recharts";
 import { exportPdf } from "@/lib/aba-pdf";
 import { toast } from "sonner";
 
@@ -99,6 +102,91 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
             Execute sessões no Simulador AF para preencher este gráfico.
           </p>
         )}
+      </div>
+
+      <ScatterPanel logs={logs} />
+    </div>
+  );
+}
+
+const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function ScatterPanel({ logs }: { logs: ABCLog[] }) {
+  // Agrupa por (weekday, hora) com contagem
+  const map = new Map<string, { x: number; y: number; count: number }>();
+  logs.forEach((l) => {
+    const d = new Date(l.timestamp);
+    if (isNaN(d.getTime())) return;
+    const x = d.getHours();
+    const y = d.getDay();
+    const key = `${y}-${x}`;
+    const prev = map.get(key);
+    if (prev) prev.count += 1;
+    else map.set(key, { x, y, count: 1 });
+  });
+  const data = Array.from(map.values());
+  const maxCount = data.reduce((m, p) => Math.max(m, p.count), 1);
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-1">
+        <CalendarClock className="size-4 text-primary" />
+        <h2 className="font-semibold">Gráfico de Dispersão — Hora × Dia da Semana</h2>
+      </div>
+      <p className="text-xs text-muted-foreground mb-4">
+        Cada círculo mostra um horário com ocorrências; tamanho = frequência. Útil para identificar Operações Motivadoras (ex.: pico próximo ao almoço sugere fome/cansaço).
+      </p>
+      <div className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <ScatterChart margin={{ top: 10, right: 16, bottom: 10, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis
+              type="number"
+              dataKey="x"
+              name="Hora"
+              domain={[0, 23]}
+              ticks={[0, 3, 6, 9, 12, 15, 18, 21]}
+              tickFormatter={(h) => `${h}h`}
+              stroke="var(--muted-foreground)"
+              fontSize={12}
+            />
+            <YAxis
+              type="number"
+              dataKey="y"
+              name="Dia"
+              domain={[-0.5, 6.5]}
+              ticks={[0, 1, 2, 3, 4, 5, 6]}
+              tickFormatter={(d) => WEEKDAYS[d] ?? ""}
+              stroke="var(--muted-foreground)"
+              fontSize={12}
+              width={44}
+            />
+            <ZAxis type="number" dataKey="count" range={[60, 400]} name="Ocorrências" />
+            <Tooltip
+              cursor={{ strokeDasharray: "3 3" }}
+              contentStyle={{
+                background: "var(--card)",
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                fontSize: 12,
+              }}
+              formatter={(value: number | string, name: string) => {
+                if (name === "Dia") return [WEEKDAYS[Number(value)] ?? value, name];
+                if (name === "Hora") return [`${value}h`, name];
+                return [value, name];
+              }}
+            />
+            <Scatter data={data} fill="var(--primary)" fillOpacity={0.65} />
+          </ScatterChart>
+        </ResponsiveContainer>
+      </div>
+      {logs.length === 0 && (
+        <p className="text-xs text-muted-foreground mt-3">
+          Registre comportamentos no Logger para visualizar padrões temporais.
+        </p>
+      )}
+      <div className="mt-2 text-[11px] text-muted-foreground">
+        Total de pontos: {data.length} • Pico: {maxCount} ocorrência{maxCount > 1 ? "s" : ""} em um mesmo horário.
       </div>
     </div>
   );

@@ -95,10 +95,15 @@ export function useChildren() {
 }
 
 export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente" {
-  const t = tags.map((x) => x.toLowerCase()).join(" ");
-  if (t.includes("atenção")) return "Atenção";
-  if (t.includes("demanda") || t.includes("fuga")) return "Fuga";
-  if (t.includes("item") || t.includes("tangível")) return "Tangível";
-  if (t.includes("sozinho") || t.includes("ignorado")) return "Sensorial";
+  const t = tags.map((x) => x.toLowerCase()).join(" | ");
+  // Consequências têm prioridade (definem a função reforçadora)
+  if (/(retirada da tarefa|pausa|redução da exigência|retirada do ambiente|demanda removida)/.test(t)) return "Fuga";
+  if (/(atenção verbal|contato físico|proximidade|atenção dada)/.test(t)) return "Atenção";
+  if (/(entrega do objeto|alimento|item fornecido|tangível)/.test(t)) return "Tangível";
+  if (/(nenhuma consequência|ignorado|sozinho|sem estímulos|excesso de estímulos|desconforto)/.test(t)) return "Sensorial";
+  // Antecedentes como pista secundária
+  if (/(demanda|transição|rotina)/.test(t)) return "Fuga";
+  if (/(retirada de atenção)/.test(t)) return "Atenção";
+  if (/(restrição de acesso|atraso|espera|item negado)/.test(t)) return "Tangível";
   return "Pendente";
 }
