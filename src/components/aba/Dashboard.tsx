@@ -9,10 +9,16 @@ import { exportPdf } from "@/lib/aba-pdf";
 import { toast } from "sonner";
 
 export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASession[] }) {
-  const total = logs.length;
-  const pending = logs.filter((l) => !l.hypothesizedFunction || l.hypothesizedFunction === "Pendente").length;
+  const { children } = useChildren();
+  const allChildren = Array.from(new Set([...children, ...logs.map((l) => l.childName).filter(Boolean) as string[]]));
+  const [selectedChild, setSelectedChild] = useState<string>("");
+
+  const filteredLogs = selectedChild ? logs.filter((l) => l.childName === selectedChild) : logs;
+
+  const total = filteredLogs.length;
+  const pending = filteredLogs.filter((l) => !l.hypothesizedFunction || l.hypothesizedFunction === "Pendente").length;
   const counts: Record<string, number> = {};
-  logs.forEach((l) => {
+  filteredLogs.forEach((l) => {
     if (l.hypothesizedFunction && l.hypothesizedFunction !== "Pendente") {
       counts[l.hypothesizedFunction] = (counts[l.hypothesizedFunction] ?? 0) + 1;
     }
@@ -36,6 +42,10 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
     { label: "Função Mais Frequente", value: mostFrequent, icon: Target, tone: "text-chart-3 bg-chart-3/10" },
     { label: "Hipóteses Pendentes", value: pending, icon: HelpCircle, tone: "text-chart-2 bg-chart-2/10" },
   ];
+
+  const topAnt = computeTopAntecedent(filteredLogs);
+  const topCon = computeTopConsequence(filteredLogs);
+  const hypothesis = computeHypothesis(filteredLogs);
 
   const handleExport = () => {
     if (logs.length === 0 && sessions.length === 0) {
@@ -63,6 +73,27 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
         </button>
       </header>
 
+      {allChildren.length > 0 && (
+        <div className="flex items-center gap-3">
+          <User className="size-4 text-muted-foreground" />
+          <select
+            value={selectedChild}
+            onChange={(e) => setSelectedChild(e.target.value)}
+            className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            <option value="">Todos os pacientes</option>
+            {allChildren.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          {selectedChild && (
+            <span className="text-xs text-muted-foreground">
+              Mostrando dados de <span className="font-medium text-foreground">{selectedChild}</span>
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map(({ label, value, icon: Icon, tone }) => (
           <div key={label} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -73,6 +104,59 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
             <div className="text-xs text-muted-foreground mt-1">{label}</div>
           </div>
         ))}
+      </div>
+
+      {/* Insights Clínicos */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <Lightbulb className="size-4 text-primary" />
+          <h2 className="font-semibold">Insights Clínicos</h2>
+        </div>
+        {filteredLogs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Nenhum registro encontrado{selectedChild ? ` para ${selectedChild}` : ""}. Adicione observações no Logger para gerar insights.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-xl bg-muted/50 p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Antecedente Mais Frequente</div>
+                {topAnt ? (
+                  <>
+                    <div className="text-lg font-semibold">{topAnt.tag}</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {topAnt.count} ocorrência{topAnt.count > 1 ? "s" : ""} ({topAnt.percent}% dos registros)
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-sm text-muted-foreground">Nenhum antecedente categorizado</div>
+                )}
+              </div>
+              <div className="rounded-xl bg-muted/50 p-4">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Consequência Mais Frequente</div>
+                {topCon ? (
+                  <>
+                    <div className="text-lg font-semibold">{topCon.tag}</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {topCon.count} ocorrência{topCon.count > 1 ? "s" : ""} ({topCon.percent}% dos registros)
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-sm text-muted-foreground">Nenhuma consequência categorizada</div>
+                )}
+              </div>
+            </div>
+            <div className="rounded-xl bg-primary/10 border border-primary/20 p-4">
+              <div className="text-xs text-primary/80 uppercase tracking-wide mb-1">Hipótese Provável</div>
+              <div className="text-lg font-semibold text-primary">
+                Comportamento mantido por <span className="underline decoration-2 underline-offset-4">{hypothesis}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Baseado na consequência mais frequente registrada nos dados{selectedChild ? ` de ${selectedChild}` : ""}.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -105,7 +189,7 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
         )}
       </div>
 
-      <ScatterPanel logs={logs} />
+      <ScatterPanel logs={filteredLogs} />
     </div>
   );
 }
