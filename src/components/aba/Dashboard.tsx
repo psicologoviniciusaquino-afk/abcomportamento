@@ -1,5 +1,6 @@
-import { ABCLog, FASession } from "@/lib/aba-store";
-import { Activity, Target, HelpCircle, TrendingUp, FileDown, CalendarClock } from "lucide-react";
+import { ABCLog, FASession, computeTopAntecedent, computeTopConsequence, computeHypothesis, useChildren } from "@/lib/aba-store";
+import { Activity, Target, HelpCircle, TrendingUp, FileDown, CalendarClock, Lightbulb, User } from "lucide-react";
+import { useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
   ScatterChart, Scatter, ZAxis,

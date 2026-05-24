@@ -94,6 +94,40 @@ export function useChildren() {
   };
 }
 
+export function computeTopAntecedent(logs: ABCLog[]): { tag: string; count: number; percent: number } | null {
+  if (logs.length === 0) return null;
+  const counts: Record<string, number> = {};
+  logs.forEach((l) => {
+    l.antecedentTags.forEach((t) => {
+      counts[t] = (counts[t] ?? 0) + 1;
+    });
+  });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (!sorted.length) return null;
+  const [tag, count] = sorted[0];
+  return { tag, count, percent: Math.round((count / logs.length) * 100) };
+}
+
+export function computeTopConsequence(logs: ABCLog[]): { tag: string; count: number; percent: number } | null {
+  if (logs.length === 0) return null;
+  const counts: Record<string, number> = {};
+  logs.forEach((l) => {
+    l.consequenceTags.forEach((t) => {
+      counts[t] = (counts[t] ?? 0) + 1;
+    });
+  });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (!sorted.length) return null;
+  const [tag, count] = sorted[0];
+  return { tag, count, percent: Math.round((count / logs.length) * 100) };
+}
+
+export function computeHypothesis(logs: ABCLog[]): FunctionType | "Pendente" {
+  const topCon = computeTopConsequence(logs);
+  if (!topCon) return "Pendente";
+  return inferFunctionFromTags([topCon.tag]);
+}
+
 export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente" {
   const t = tags.map((x) => x.toLowerCase()).join(" | ");
   // Consequências têm prioridade (definem a função reforçadora)
