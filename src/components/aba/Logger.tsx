@@ -405,3 +405,27 @@ function TagRow({ tags, active, onToggle }: { tags: string[]; active: string[]; 
     </div>
   );
 }
+
+function TagGroups({
+  groups,
+  active,
+  onToggle,
+}: {
+  groups: { category: string; hint: string; tags: string[] }[];
+  active: string[];
+  onToggle: (t: string) => void;
+}) {
+  return (
+    <div className="space-y-3 pt-2">
+      {groups.map((g) => (
+        <div key={g.category} className="rounded-lg border border-border/60 bg-muted/20 p-3">
+          <div className="flex items-baseline justify-between gap-2 mb-2">
+            <span className="text-xs font-semibold text-foreground">{g.category}</span>
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{g.hint}</span>
+          </div>
+          <TagRow tags={g.tags} active={active} onToggle={onToggle} />
+        </div>
+      ))}
+    </div>
+  );
+}
