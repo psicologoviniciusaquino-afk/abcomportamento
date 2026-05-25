@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Sidebar, TabKey } from "@/components/aba/Sidebar";
 import { Dashboard } from "@/components/aba/Dashboard";
 import { Logger } from "@/components/aba/Logger";
+import { QuickLogger } from "@/components/aba/QuickLogger";
 import { Simulator } from "@/components/aba/Simulator";
 import { Education } from "@/components/aba/Education";
 import { Toaster } from "@/components/ui/sonner";
