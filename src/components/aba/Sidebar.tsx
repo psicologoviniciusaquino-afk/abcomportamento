@@ -44,7 +44,7 @@ export function Sidebar({ active, onChange }: { active: TabKey; onChange: (k: Ta
         </div>
       </aside>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur grid grid-cols-4">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur grid grid-cols-5">
         {items.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
