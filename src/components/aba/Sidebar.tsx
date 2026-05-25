@@ -1,10 +1,11 @@
-import { LayoutDashboard, ClipboardList, FlaskConical, BookOpen, Brain } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FlaskConical, BookOpen, Brain, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type TabKey = "dashboard" | "logger" | "simulator" | "education";
+export type TabKey = "dashboard" | "quick" | "logger" | "simulator" | "education";
 
 const items: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "dashboard", label: "Painel", icon: LayoutDashboard },
+  { key: "quick", label: "Sessão", icon: Zap },
   { key: "logger", label: "Registro ABC", icon: ClipboardList },
   { key: "simulator", label: "Simulador AF", icon: FlaskConical },
   { key: "education", label: "Aprender", icon: BookOpen },
