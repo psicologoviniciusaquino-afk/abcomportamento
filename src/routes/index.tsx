@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Sidebar, TabKey } from "@/components/aba/Sidebar";
 import { Dashboard } from "@/components/aba/Dashboard";
 import { Logger } from "@/components/aba/Logger";
+import { QuickLogger } from "@/components/aba/QuickLogger";
 import { Simulator } from "@/components/aba/Simulator";
 import { Education } from "@/components/aba/Education";
 import { Toaster } from "@/components/ui/sonner";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [tab, setTab] = useState<TabKey>("dashboard");
+  const [tab, setTab] = useState<TabKey>("quick");
   const { logs } = useLogs();
   const { sessions } = useFASessions();
 
@@ -28,6 +29,7 @@ function Index() {
       <Sidebar active={tab} onChange={setTab} />
       <main className="flex-1 px-4 md:px-8 py-6 md:py-10 pb-24 md:pb-10 max-w-6xl mx-auto w-full">
         {tab === "dashboard" && <Dashboard logs={logs} sessions={sessions} />}
+        {tab === "quick" && <QuickLogger />}
         {tab === "logger" && <Logger />}
         {tab === "simulator" && <Simulator />}
         {tab === "education" && <Education />}
