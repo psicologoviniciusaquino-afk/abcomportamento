@@ -80,7 +80,7 @@ export function useChildren() {
   });
 
   return {
-    children: data,
+    children: data as Child[],
     isLoading,
     add: (name: string) => addMutation.mutate({ name }),
     addFull: (input: Parameters<typeof addMutation.mutate>[0]) => addMutation.mutate(input),
@@ -89,7 +89,12 @@ export function useChildren() {
 }
 
 export function useLogs(childId?: string | null) {
-  const { data = [], isLoading } = useQuery(logsQueryOptions(childId));
+  const list = useServerFn(listLogsFn);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["abc_logs", childId ?? "all"],
+    queryFn: () => list({ data: { childId: childId ?? null } }),
+    staleTime: 10_000,
+  });
   const queryClient = useQueryClient();
   const create = useServerFn(createLogFn);
   const remove = useServerFn(deleteLogFn);
@@ -106,7 +111,7 @@ export function useLogs(childId?: string | null) {
   });
 
   return {
-    logs: data,
+    logs: data as ABCLog[],
     isLoading,
     add: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) => addMutation.mutate(log),
     remove: (id: string) => removeMutation.mutate(id),
@@ -114,7 +119,12 @@ export function useLogs(childId?: string | null) {
 }
 
 export function useFASessions(childId?: string | null) {
-  const { data = [], isLoading } = useQuery(sessionsQueryOptions(childId));
+  const list = useServerFn(listSessionsFn);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["fa_sessions", childId ?? "all"],
+    queryFn: () => list({ data: { childId: childId ?? null } }),
+    staleTime: 10_000,
+  });
   const queryClient = useQueryClient();
   const create = useServerFn(createSessionFn);
   const clear = useServerFn(clearSessionsFn);
@@ -131,7 +141,7 @@ export function useFASessions(childId?: string | null) {
   });
 
   return {
-    sessions: data,
+    sessions: data as FASession[],
     isLoading,
     add: (session: Omit<FASession, "id" | "owner_id" | "createdAt">) => addMutation.mutate(session),
     clear: () => clearMutation.mutate(),
