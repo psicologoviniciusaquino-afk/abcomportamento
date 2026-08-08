@@ -2,7 +2,7 @@ import { ABCLog, FASession, Child } from "./aba-store";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-function childName(child: Child | undefined, fallback = "—"): string {
+function childName(child: Child | null | undefined, fallback = "—"): string {
   return child?.name ?? fallback;
 }
 
