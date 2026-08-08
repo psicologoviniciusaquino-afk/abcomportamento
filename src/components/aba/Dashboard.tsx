@@ -1,4 +1,4 @@
-import { ABCLog, FASession, computeTopAntecedent, computeTopConsequence, computeHypothesis, useChildren } from "@/lib/aba-store";
+import { ABCLog, FASession, Child, computeTopAntecedent, computeTopConsequence, computeHypothesis, useChildren } from "@/lib/aba-store";
 import { Activity, Target, HelpCircle, TrendingUp, FileDown, CalendarClock, Lightbulb, User } from "lucide-react";
 import { useState } from "react";
 import {
@@ -10,10 +10,12 @@ import { toast } from "sonner";
 
 export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASession[] }) {
   const { children } = useChildren();
-  const allChildren = Array.from(new Set([...children, ...logs.map((l) => l.childName).filter(Boolean) as string[]]));
-  const [selectedChild, setSelectedChild] = useState<string>("");
+  const [selectedChildId, setSelectedChildId] = useState<string>("");
 
-  const filteredLogs = selectedChild ? logs.filter((l) => l.childName === selectedChild) : logs;
+  const childMap = new Map(children.map((c) => [c.id, c] as const));
+  const selectedChild = childMap.get(selectedChildId);
+
+  const filteredLogs = selectedChildId ? logs.filter((l) => l.child_id === selectedChildId) : logs;
 
   const total = filteredLogs.length;
   const pending = filteredLogs.filter((l) => !l.hypothesizedFunction || l.hypothesizedFunction === "Pendente").length;
@@ -25,8 +27,10 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
   });
   const mostFrequent = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
+  const filteredSessions = selectedChildId ? sessions.filter((s) => s.child_id === selectedChildId) : sessions;
+
   const conditionTotals: Record<string, { condition: string; rate: number }> = {};
-  sessions.forEach((s) => {
+  filteredSessions.forEach((s) => {
     const rate = s.frequency / Math.max(s.durationMin, 1);
     if (!conditionTotals[s.condition]) conditionTotals[s.condition] = { condition: s.condition, rate: 0 };
     conditionTotals[s.condition].rate = Math.max(conditionTotals[s.condition].rate, rate);
@@ -52,7 +56,7 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
       toast.error("Nenhum dado para exportar.");
       return;
     }
-    exportPdf(logs, sessions);
+    exportPdf(logs, sessions, children, selectedChild);
     toast.success("PDF gerado com sucesso!");
   };
 
@@ -73,22 +77,22 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
         </button>
       </header>
 
-      {allChildren.length > 0 && (
+      {children.length > 0 && (
         <div className="flex items-center gap-3">
           <User className="size-4 text-muted-foreground" />
           <select
-            value={selectedChild}
-            onChange={(e) => setSelectedChild(e.target.value)}
+            value={selectedChildId}
+            onChange={(e) => setSelectedChildId(e.target.value)}
             className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             <option value="">Todos os pacientes</option>
-            {allChildren.map((c) => (
-              <option key={c} value={c}>{c}</option>
+            {children.map((c: Child) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
           {selectedChild && (
             <span className="text-xs text-muted-foreground">
-              Mostrando dados de <span className="font-medium text-foreground">{selectedChild}</span>
+              Mostrando dados de <span className="font-medium text-foreground">{selectedChild.name}</span>
             </span>
           )}
         </div>
@@ -106,7 +110,6 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
         ))}
       </div>
 
-      {/* Insights Clínicos */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <Lightbulb className="size-4 text-primary" />
@@ -114,7 +117,7 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
         </div>
         {filteredLogs.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nenhum registro encontrado{selectedChild ? ` para ${selectedChild}` : ""}. Adicione observações no Logger para gerar insights.
+            Nenhum registro encontrado{selectedChild ? ` para ${selectedChild.name}` : ""}. Adicione observações no Logger para gerar insights.
           </p>
         ) : (
           <div className="space-y-4">
@@ -152,7 +155,7 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
                 Comportamento mantido por <span className="underline decoration-2 underline-offset-4">{hypothesis}</span>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                Baseado na consequência mais frequente registrada nos dados{selectedChild ? ` de ${selectedChild}` : ""}.
+                Baseado na consequência mais frequente registrada nos dados{selectedChild ? ` de ${selectedChild.name}` : ""}.
               </p>
             </div>
           </div>
@@ -182,7 +185,7 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
             </BarChart>
           </ResponsiveContainer>
         </div>
-        {sessions.length === 0 && (
+        {filteredSessions.length === 0 && (
           <p className="text-xs text-muted-foreground mt-3">
             Execute sessões no Simulador AF para preencher este gráfico.
           </p>
@@ -197,7 +200,6 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 function ScatterPanel({ logs }: { logs: ABCLog[] }) {
-  // Agrupa por (weekday, hora) com contagem
   const map = new Map<string, { x: number; y: number; count: number }>();
   logs.forEach((l) => {
     const d = new Date(l.timestamp);

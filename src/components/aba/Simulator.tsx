@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FASession, useFASessions, useLogs } from "@/lib/aba-store";
+import { FASession, useFASessions, useLogs, useChildren, Child } from "@/lib/aba-store";
 import { exportPdf } from "@/lib/aba-pdf";
 import { toast } from "sonner";
 import { FlaskConical, Play, Trash2, Info, FileDown } from "lucide-react";
@@ -15,24 +15,37 @@ const CONDITIONS: { key: FASession["condition"]; label: string; desc: string; co
 export function Simulator() {
   const { sessions, add, clear } = useFASessions();
   const { logs } = useLogs();
+  const { children, isLoading: childrenLoading } = useChildren();
+  const [childId, setChildId] = useState<string>("");
   const [condition, setCondition] = useState<FASession["condition"]>("Attention");
   const [duration, setDuration] = useState(10);
   const [frequency, setFrequency] = useState(5);
 
+  const childMap = new Map(children.map((c) => [c.id, c] as const));
+  const selectedChild = childMap.get(childId);
+
   const run = () => {
-    const s: FASession = {
-      id: crypto.randomUUID(),
-      condition, durationMin: duration, frequency,
-      createdAt: new Date().toISOString(),
-    };
-    add(s);
+    add({
+      child_id: childId || null,
+      condition,
+      durationMin: duration,
+      frequency,
+    });
     const label = CONDITIONS.find((c) => c.key === condition)?.label;
     toast.success(`Sessão de ${label} registrada`, {
       description: `Taxa: ${(frequency / duration).toFixed(2)} respostas/min`,
     });
     // Exportar PDF automaticamente
     try {
-      exportPdf(logs, [...sessions, s]);
+      exportPdf(logs, [...sessions, {
+        id: "temp",
+        owner_id: "",
+        child_id: childId || null,
+        condition,
+        durationMin: duration,
+        frequency,
+        createdAt: new Date().toISOString(),
+      }], children, selectedChild);
       toast.success("PDF exportado automaticamente", {
         icon: <FileDown className="size-4" />,
       });
@@ -41,8 +54,10 @@ export function Simulator() {
     }
   };
 
+  const filteredSessions = childId ? sessions.filter((s) => s.child_id === childId) : sessions;
+
   const grouped = CONDITIONS.map((c) => {
-    const matching = sessions.filter((s) => s.condition === c.key);
+    const matching = filteredSessions.filter((s) => s.condition === c.key);
     const totalDur = matching.reduce((a, s) => a + s.durationMin, 0);
     const totalFreq = matching.reduce((a, s) => a + s.frequency, 0);
     return {
@@ -73,6 +88,20 @@ export function Simulator() {
             <FlaskConical className="size-4 text-primary" />
             <h2 className="font-semibold">Executar Sessão de Condição</h2>
           </div>
+
+          <Field label="Paciente">
+            <select
+              value={childId}
+              onChange={(e) => setChildId(e.target.value)}
+              className="input w-full"
+              disabled={childrenLoading}
+            >
+              <option value="">— Selecionar —</option>
+              {children.map((c: Child) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </Field>
 
           <div className="grid grid-cols-2 gap-2">
             {CONDITIONS.map((c) => (
@@ -152,6 +181,15 @@ export function Simulator() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</label>
+      {children}
     </div>
   );
 }

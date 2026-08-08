@@ -7,6 +7,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -72,18 +74,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Log and simulate behavior data for ABA therapists and behavioral analysts." },
+      { title: "Rastreador ABC & Simulador de Análise Funcional" },
+      { name: "description", content: "Registre observações ABC e simule análises funcionais para prática e ensino em ABA." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Log and simulate behavior data for ABA therapists and behavioral analysts." },
+      { property: "og:title", content: "Rastreador ABC & Simulador de Análise Funcional" },
+      { property: "og:description", content: "Registre observações ABC e simule análises funcionais para prática e ensino em ABA." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Log and simulate behavior data for ABA therapists and behavioral analysts." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dccf0e4d-3670-4ae1-8271-4350e5bdf6bb/id-preview-888e73cd--d0593c18-b186-4969-9174-ab6a2246f410.lovable.app-1779376082423.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dccf0e4d-3670-4ae1-8271-4350e5bdf6bb/id-preview-888e73cd--d0593c18-b186-4969-9174-ab6a2246f410.lovable.app-1779376082423.png" },
+      { name: "twitter:title", content: "Rastreador ABC & Simulador de Análise Funcional" },
+      { name: "twitter:description", content: "Registre observações ABC e simule análises funcionais para prática e ensino em ABA." },
     ],
     links: [
       {
@@ -114,6 +113,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        router.invalidate();
+        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [queryClient, router]);
 
   return (
     <QueryClientProvider client={queryClient}>
