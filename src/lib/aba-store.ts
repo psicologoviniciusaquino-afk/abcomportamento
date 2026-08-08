@@ -1,98 +1,165 @@
-import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  listChildrenFn,
+  createChildFn,
+  deleteChildFn,
+  listLogsFn,
+  createLogFn,
+  deleteLogFn,
+  listSessionsFn,
+  createSessionFn,
+  clearSessionsFn,
+} from "./aba.functions";
 
 export type FunctionType = "Atenção" | "Fuga" | "Tangível" | "Sensorial";
+export type Phase = "baseline" | "intervention";
+export type FACondition = "Attention" | "Demand" | "Tangible" | "Play";
+
+export interface Child {
+  id: string;
+  owner_id: string;
+  name: string;
+  birth_date?: string | null;
+  target_behavior?: string | null;
+  notes?: string | null;
+  created_at: string;
+}
 
 export interface ABCLog {
   id: string;
+  owner_id: string;
+  child_id?: string | null;
   timestamp: string;
-  childName?: string;
-  targetBehavior?: string;
-  environmentTags?: string[];
-  environmentNotes?: string;
+  phase?: Phase | null;
   antecedent: string;
   antecedentTags: string[];
   behavior: string;
   severity: number;
   consequence: string;
   consequenceTags: string[];
+  environmentTags?: string[];
+  environmentNotes?: string | null;
   hypothesizedFunction?: FunctionType | "Pendente";
+  // convenience fields for UI
+  childName?: string;
+  targetBehavior?: string;
+  created_at?: string;
 }
 
 export interface FASession {
   id: string;
-  condition: "Attention" | "Demand" | "Tangible" | "Play";
+  owner_id: string;
+  child_id?: string | null;
+  condition: FACondition;
   durationMin: number;
   frequency: number;
   createdAt: string;
 }
 
-const LOGS_KEY = "aba.logs.v1";
-const FA_KEY = "aba.fa.v1";
+// --- Query options ---
 
-function read<T>(k: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(k);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
+const childrenQueryOptions = () =>
+  queryOptions({
+    queryKey: ["children"],
+    queryFn: () => listChildrenFn(),
+    staleTime: 30_000,
+  });
 
-function write<T>(k: string, v: T) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(k, JSON.stringify(v));
-}
+const logsQueryOptions = (childId?: string | null) =>
+  queryOptions({
+    queryKey: ["abc_logs", childId ?? "all"],
+    queryFn: () => listLogsFn({ data: { childId: childId ?? null } }),
+    staleTime: 10_000,
+  });
 
-export function useLogs() {
-  const [logs, setLogs] = useState<ABCLog[]>([]);
-  useEffect(() => setLogs(read<ABCLog[]>(LOGS_KEY, [])), []);
-  const save = (next: ABCLog[]) => {
-    setLogs(next);
-    write(LOGS_KEY, next);
-  };
-  return {
-    logs,
-    add: (l: ABCLog) => save([l, ...logs]),
-    update: (id: string, patch: Partial<ABCLog>) =>
-      save(logs.map((x) => (x.id === id ? { ...x, ...patch } : x))),
-    remove: (id: string) => save(logs.filter((x) => x.id !== id)),
-  };
-}
+const sessionsQueryOptions = (childId?: string | null) =>
+  queryOptions({
+    queryKey: ["fa_sessions", childId ?? "all"],
+    queryFn: () => listSessionsFn({ data: { childId: childId ?? null } }),
+    staleTime: 10_000,
+  });
 
-export function useFASessions() {
-  const [sessions, setSessions] = useState<FASession[]>([]);
-  useEffect(() => setSessions(read<FASession[]>(FA_KEY, [])), []);
-  const save = (next: FASession[]) => {
-    setSessions(next);
-    write(FA_KEY, next);
-  };
-  return {
-    sessions,
-    add: (s: FASession) => save([s, ...sessions]),
-    clear: () => save([]),
-  };
-}
-
-const CHILDREN_KEY = "aba.children.v1";
+// --- Hooks ---
 
 export function useChildren() {
-  const [children, setChildren] = useState<string[]>([]);
-  useEffect(() => setChildren(read<string[]>(CHILDREN_KEY, [])), []);
-  const save = (next: string[]) => {
-    setChildren(next);
-    write(CHILDREN_KEY, next);
-  };
-  return {
-    children,
-    add: (name: string) => {
-      const n = name.trim();
-      if (!n || children.includes(n)) return;
-      save([n, ...children]);
+  const { data = [], isLoading } = useQuery(childrenQueryOptions());
+  const queryClient = useQueryClient();
+  const create = useServerFn(createChildFn);
+  const remove = useServerFn(deleteChildFn);
+
+  const addMutation = useMutation({
+    mutationFn: async (input: { name: string; birth_date?: string | null; target_behavior?: string | null; notes?: string | null }) => {
+      return create({ data: input });
     },
-    remove: (name: string) => save(children.filter((c) => c !== name)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["children"] }),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => remove({ data: { id } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["children"] }),
+  });
+
+  return {
+    children: data,
+    isLoading,
+    add: (name: string) => addMutation.mutate({ name }),
+    addFull: (input: Parameters<typeof addMutation.mutate>[0]) => addMutation.mutate(input),
+    remove: (id: string) => removeMutation.mutate(id),
   };
 }
+
+export function useLogs(childId?: string | null) {
+  const { data = [], isLoading } = useQuery(logsQueryOptions(childId));
+  const queryClient = useQueryClient();
+  const create = useServerFn(createLogFn);
+  const remove = useServerFn(deleteLogFn);
+
+  const addMutation = useMutation({
+    mutationFn: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) =>
+      create({ data: log }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["abc_logs"] }),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => remove({ data: { id } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["abc_logs"] }),
+  });
+
+  return {
+    logs: data,
+    isLoading,
+    add: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) => addMutation.mutate(log),
+    remove: (id: string) => removeMutation.mutate(id),
+  };
+}
+
+export function useFASessions(childId?: string | null) {
+  const { data = [], isLoading } = useQuery(sessionsQueryOptions(childId));
+  const queryClient = useQueryClient();
+  const create = useServerFn(createSessionFn);
+  const clear = useServerFn(clearSessionsFn);
+
+  const addMutation = useMutation({
+    mutationFn: (session: Omit<FASession, "id" | "owner_id" | "createdAt">) =>
+      create({ data: session }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fa_sessions"] }),
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: () => clear({ data: { childId: childId ?? null } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fa_sessions"] }),
+  });
+
+  return {
+    sessions: data,
+    isLoading,
+    add: (session: Omit<FASession, "id" | "owner_id" | "createdAt">) => addMutation.mutate(session),
+    clear: () => clearMutation.mutate(),
+  };
+}
+
+// --- Analytics ---
 
 export function computeTopAntecedent(logs: ABCLog[]): { tag: string; count: number; percent: number } | null {
   if (logs.length === 0) return null;
@@ -130,12 +197,10 @@ export function computeHypothesis(logs: ABCLog[]): FunctionType | "Pendente" {
 
 export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente" {
   const t = tags.map((x) => x.toLowerCase()).join(" | ");
-  // Consequências têm prioridade (definem a função reforçadora)
   if (/(retirada da tarefa|pausa|redução da exigência|retirada do ambiente|demanda removida)/.test(t)) return "Fuga";
   if (/(atenção verbal|contato físico|proximidade|atenção dada)/.test(t)) return "Atenção";
   if (/(entrega do objeto|alimento|item fornecido|tangível)/.test(t)) return "Tangível";
   if (/(nenhuma consequência|ignorado|sozinho|sem estímulos|excesso de estímulos|desconforto)/.test(t)) return "Sensorial";
-  // Antecedentes como pista secundária
   if (/(demanda|transição|rotina)/.test(t)) return "Fuga";
   if (/(retirada de atenção)/.test(t)) return "Atenção";
   if (/(restrição de acesso|atraso|espera|item negado)/.test(t)) return "Tangível";
