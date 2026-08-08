@@ -14,16 +14,199 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      abc_logs: {
+        Row: {
+          antecedent: string
+          antecedent_tags: string[]
+          behavior: string
+          child_id: string | null
+          consequence: string
+          consequence_tags: string[]
+          created_at: string
+          environment_notes: string | null
+          environment_tags: string[]
+          hypothesized_function: string | null
+          id: string
+          owner_id: string
+          phase: string | null
+          severity: number
+          timestamp: string
+        }
+        Insert: {
+          antecedent?: string
+          antecedent_tags?: string[]
+          behavior: string
+          child_id?: string | null
+          consequence?: string
+          consequence_tags?: string[]
+          created_at?: string
+          environment_notes?: string | null
+          environment_tags?: string[]
+          hypothesized_function?: string | null
+          id?: string
+          owner_id: string
+          phase?: string | null
+          severity?: number
+          timestamp?: string
+        }
+        Update: {
+          antecedent?: string
+          antecedent_tags?: string[]
+          behavior?: string
+          child_id?: string | null
+          consequence?: string
+          consequence_tags?: string[]
+          created_at?: string
+          environment_notes?: string | null
+          environment_tags?: string[]
+          hypothesized_function?: string | null
+          id?: string
+          owner_id?: string
+          phase?: string | null
+          severity?: number
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abc_logs_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          birth_date: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string
+          target_behavior: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id: string
+          target_behavior?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          target_behavior?: string | null
+        }
+        Relationships: []
+      }
+      fa_sessions: {
+        Row: {
+          child_id: string | null
+          condition: string
+          created_at: string
+          duration_min: number
+          frequency: number
+          id: string
+          owner_id: string
+        }
+        Insert: {
+          child_id?: string | null
+          condition: string
+          created_at?: string
+          duration_min: number
+          frequency?: number
+          id?: string
+          owner_id: string
+        }
+        Update: {
+          child_id?: string | null
+          condition?: string
+          created_at?: string
+          duration_min?: number
+          frequency?: number
+          id?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fa_sessions_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          id: string
+          license: string | null
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          license?: string | null
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          license?: string | null
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "therapist" | "supervisor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +333,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "therapist", "supervisor"],
+    },
   },
 } as const
