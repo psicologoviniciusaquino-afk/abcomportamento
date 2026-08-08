@@ -62,7 +62,7 @@ export interface FASession {
 const childrenQueryOptions = () =>
   queryOptions({
     queryKey: ["children"],
-    queryFn: () => listChildrenFn(),
+    queryFn: () => listChildrenFn({ data: undefined }),
     staleTime: 30_000,
   });
 
