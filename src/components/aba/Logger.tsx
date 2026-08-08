@@ -1,11 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { ABCLog, inferFunctionFromTags, useLogs, useChildren } from "@/lib/aba-store";
+import { useState } from "react";
+import { inferFunctionFromTags, useLogs, useChildren, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, X, Play, Pause, RotateCcw, Timer } from "lucide-react";
+import { Trash2, Plus, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const SESSION_MINUTES = 50;
-const SESSION_SECONDS = SESSION_MINUTES * 60;
 
 const ANT_GROUPS: { category: string; hint: string; tags: string[] }[] = [
   {
@@ -60,10 +57,10 @@ const ENV_TAGS = [
 ];
 
 export function Logger() {
-  const { logs, add, remove } = useLogs();
-  const { children, add: addChild, remove: removeChild } = useChildren();
+  const { logs, add, remove, isLoading: logsLoading } = useLogs();
+  const { children, addFull, remove: removeChild, isLoading: childrenLoading } = useChildren();
   const [timestamp, setTimestamp] = useState(() => new Date().toISOString().slice(0, 16));
-  const [childName, setChildName] = useState("");
+  const [childId, setChildId] = useState<string>("");
   const [newChild, setNewChild] = useState("");
   const [targetBehavior, setTargetBehavior] = useState("");
   const [envTags, setEnvTags] = useState<string[]>([]);
@@ -75,16 +72,18 @@ export function Logger() {
   const [consequence, setConsequence] = useState("");
   const [conTags, setConTags] = useState<string[]>([]);
 
+  const childMap = new Map(children.map((c) => [c.id, c] as const));
+  const selectedChild = childMap.get(childId);
+
   const toggle = (arr: string[], setArr: (v: string[]) => void, tag: string) =>
     setArr(arr.includes(tag) ? arr.filter((x) => x !== tag) : [...arr, tag]);
 
   const handleAddChild = () => {
     const n = newChild.trim();
     if (!n) return;
-    addChild(n);
-    setChildName(n);
+    addFull({ name: n });
+    toast.success("Paciente adicionado");
     setNewChild("");
-    toast.success("Criança adicionada");
   };
 
   const submit = (e: React.FormEvent) => {
@@ -93,23 +92,20 @@ export function Logger() {
       toast.error("Descreva o comportamento.");
       return;
     }
-    const log: ABCLog = {
-      id: crypto.randomUUID(),
-      timestamp,
-      childName: childName || undefined,
-      targetBehavior: targetBehavior || undefined,
-      environmentTags: envTags,
-      environmentNotes: envNotes || undefined,
+    add({
+      child_id: childId || null,
+      timestamp: new Date(timestamp).toISOString(),
+      phase: null,
       antecedent,
       antecedentTags: antTags,
       behavior,
       severity,
       consequence,
       consequenceTags: conTags,
-      hypothesizedFunction: inferFunctionFromTags([...antTags, ...conTags]),
-    };
-    add(log);
-    toast.success("Registro salvo", { description: `Hipótese: ${log.hypothesizedFunction}` });
+      environmentTags: envTags,
+      environmentNotes: envNotes || null,
+    });
+    toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
     setAntecedent(""); setBehavior(""); setConsequence("");
     setAntTags([]); setConTags([]); setSeverity(3);
     setEnvTags([]); setEnvNotes("");
@@ -126,29 +122,40 @@ export function Logger() {
         </p>
       </header>
 
-      <SessionTimer />
-
       <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm space-y-5">
         <div className="grid md:grid-cols-2 gap-4">
-          <Field label="Criança">
+          <Field label="Paciente">
             <div className="flex gap-2">
-              <select value={childName} onChange={(e) => setChildName(e.target.value)} className="input flex-1">
+              <select
+                value={childId}
+                onChange={(e) => setChildId(e.target.value)}
+                className="input flex-1"
+                disabled={childrenLoading}
+              >
                 <option value="">— Selecionar —</option>
-                {children.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                {children.map((c: Child) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              {childName && (
-                <button type="button" onClick={() => { removeChild(childName); setChildName(""); }}
-                  className="text-xs text-muted-foreground hover:text-destructive px-2" title="Remover da lista">
+              {selectedChild && (
+                <button
+                  type="button"
+                  onClick={() => { removeChild(selectedChild.id); setChildId(""); }}
+                  className="text-xs text-muted-foreground hover:text-destructive px-2"
+                  title="Remover paciente"
+                >
                   <X className="size-4" />
                 </button>
               )}
             </div>
             <div className="flex gap-2 mt-2">
-              <input value={newChild} onChange={(e) => setNewChild(e.target.value)}
+              <input
+                value={newChild}
+                onChange={(e) => setNewChild(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddChild(); } }}
-                placeholder="Adicionar nova criança..." className="input flex-1" />
+                placeholder="Adicionar novo paciente..."
+                className="input flex-1"
+              />
               <button type="button" onClick={handleAddChild} className="btn-secondary">
                 <Plus className="size-4" />
               </button>
@@ -160,15 +167,23 @@ export function Logger() {
         </div>
 
         <Field label="Comportamento-alvo">
-          <input value={targetBehavior} onChange={(e) => setTargetBehavior(e.target.value)}
-            placeholder="Ex.: agressão, autolesão, birra, fuga..." className="input" />
+          <input
+            value={targetBehavior}
+            onChange={(e) => setTargetBehavior(e.target.value)}
+            placeholder="Ex.: agressão, autolesão, birra, fuga..."
+            className="input"
+          />
         </Field>
 
         <Field label="Fatores Ambientais / Contexto Externo">
           <TagRow tags={ENV_TAGS} active={envTags} onToggle={(t) => toggle(envTags, setEnvTags, t)} />
-          <textarea value={envNotes} onChange={(e) => setEnvNotes(e.target.value)}
-            rows={2} placeholder="Outras observações do ambiente (local, pessoas presentes, eventos prévios)..."
-            className="input mt-2" />
+          <textarea
+            value={envNotes}
+            onChange={(e) => setEnvNotes(e.target.value)}
+            rows={2}
+            placeholder="Outras observações do ambiente (local, pessoas presentes, eventos prévios)..."
+            className="input mt-2"
+          />
         </Field>
 
         <div className="grid md:grid-cols-1 gap-4">
@@ -208,7 +223,9 @@ export function Logger() {
           <h2 className="font-semibold">Registros Recentes</h2>
           <span className="text-xs text-muted-foreground">{logs.length} no total</span>
         </div>
-        {logs.length === 0 ? (
+        {logsLoading ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">Carregando registros...</div>
+        ) : logs.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">
             <Plus className="size-6 mx-auto mb-2 opacity-50" />
             Nenhum registro ainda — seu primeiro aparecerá aqui.
@@ -219,7 +236,7 @@ export function Logger() {
               <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wide">
                 <tr>
                   <th className="text-left px-4 py-3">Quando</th>
-                  <th className="text-left px-4 py-3">Criança</th>
+                  <th className="text-left px-4 py-3">Paciente</th>
                   <th className="text-left px-4 py-3">Comportamento</th>
                   <th className="text-left px-4 py-3">Sev</th>
                   <th className="text-left px-4 py-3">Função</th>
@@ -227,34 +244,37 @@ export function Logger() {
                 </tr>
               </thead>
               <tbody>
-                {logs.map((l) => (
-                  <tr key={l.id} className="border-t border-border hover:bg-muted/30">
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                      {new Date(l.timestamp).toLocaleString("pt-BR")}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">{l.childName ?? "—"}</td>
-                    <td className="px-4 py-3 max-w-xs truncate">{l.behavior}</td>
-                    <td className="px-4 py-3">{l.severity}</td>
-                    <td className="px-4 py-3">
-                      <span className={cn(
-                        "px-2 py-0.5 rounded-full text-xs font-medium",
-                        l.hypothesizedFunction === "Pendente"
-                          ? "bg-warning/15 text-warning-foreground"
-                          : "bg-primary/10 text-primary"
-                      )}>
-                        {l.hypothesizedFunction}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => { remove(l.id); toast.success("Registro excluído"); }}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {logs.map((l) => {
+                  const child = l.child_id ? childMap.get(l.child_id) : undefined;
+                  return (
+                    <tr key={l.id} className="border-t border-border hover:bg-muted/30">
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {new Date(l.timestamp).toLocaleString("pt-BR")}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">{child?.name ?? "—"}</td>
+                      <td className="px-4 py-3 max-w-xs truncate">{l.behavior}</td>
+                      <td className="px-4 py-3">{l.severity}</td>
+                      <td className="px-4 py-3">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded-full text-xs font-medium",
+                          l.hypothesizedFunction === "Pendente"
+                            ? "bg-warning/15 text-warning-foreground"
+                            : "bg-primary/10 text-primary"
+                        )}>
+                          {l.hypothesizedFunction}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => { remove(l.id); toast.success("Registro excluído"); }}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -293,85 +313,6 @@ export function Logger() {
         }
         .btn-secondary:hover { opacity: .85; }
       `}</style>
-    </div>
-  );
-}
-
-function SessionTimer() {
-  const [remaining, setRemaining] = useState(SESSION_SECONDS);
-  const [running, setRunning] = useState(false);
-  const endedRef = useRef(false);
-
-  useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(id);
-          setRunning(false);
-          if (!endedRef.current) {
-            endedRef.current = true;
-            toast.success("Sessão de 50 min concluída", { description: "Tempo encerrado." });
-            try {
-              if (typeof window !== "undefined" && "Notification" in window) {
-                // best-effort, no permission prompt
-              }
-              const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-              const o = ctx.createOscillator(); const g = ctx.createGain();
-              o.connect(g); g.connect(ctx.destination);
-              o.frequency.value = 880; g.gain.value = 0.1;
-              o.start(); setTimeout(() => { o.stop(); ctx.close(); }, 400);
-            } catch {}
-          }
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [running]);
-
-  const start = () => {
-    if (remaining === 0) { setRemaining(SESSION_SECONDS); endedRef.current = false; }
-    setRunning(true);
-  };
-  const pause = () => setRunning(false);
-  const reset = () => { setRunning(false); setRemaining(SESSION_SECONDS); endedRef.current = false; };
-
-  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
-  const ss = String(remaining % 60).padStart(2, "0");
-  const pct = ((SESSION_SECONDS - remaining) / SESSION_SECONDS) * 100;
-
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4 md:p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-            <Timer className="size-5" />
-          </div>
-          <div>
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Sessão de 50 min</div>
-            <div className="text-2xl font-semibold tabular-nums">{mm}:{ss}</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {!running ? (
-            <button type="button" onClick={start} className="btn-primary">
-              <Play className="size-4" /> {remaining === SESSION_SECONDS ? "Iniciar" : "Retomar"}
-            </button>
-          ) : (
-            <button type="button" onClick={pause} className="btn-secondary">
-              <Pause className="size-4" /> Pausar
-            </button>
-          )}
-          <button type="button" onClick={reset} className="btn-secondary" title="Reiniciar">
-            <RotateCcw className="size-4" />
-          </button>
-        </div>
-      </div>
-      <div className="mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
-        <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-      </div>
     </div>
   );
 }
