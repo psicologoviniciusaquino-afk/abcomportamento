@@ -57,12 +57,13 @@ export interface FASession {
   createdAt: string;
 }
 
-// --- Hooks ---
-
-// --- Hooks ---
-
 export function useChildren() {
-  const { data = [], isLoading } = useQuery(childrenQueryOptions());
+  const list = useServerFn(listChildrenFn);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["children"],
+    queryFn: () => list({ data: undefined }),
+    staleTime: 30_000,
+  });
   const queryClient = useQueryClient();
   const create = useServerFn(createChildFn);
   const remove = useServerFn(deleteChildFn);
