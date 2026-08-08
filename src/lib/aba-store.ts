@@ -57,28 +57,7 @@ export interface FASession {
   createdAt: string;
 }
 
-// --- Query options ---
-
-const childrenQueryOptions = () =>
-  queryOptions({
-    queryKey: ["children"],
-    queryFn: () => listChildrenFn({ data: undefined }),
-    staleTime: 30_000,
-  });
-
-const logsQueryOptions = (childId?: string | null) =>
-  queryOptions({
-    queryKey: ["abc_logs", childId ?? "all"],
-    queryFn: () => listLogsFn({ data: { childId: childId ?? null } }),
-    staleTime: 10_000,
-  });
-
-const sessionsQueryOptions = (childId?: string | null) =>
-  queryOptions({
-    queryKey: ["fa_sessions", childId ?? "all"],
-    queryFn: () => listSessionsFn({ data: { childId: childId ?? null } }),
-    staleTime: 10_000,
-  });
+// --- Hooks ---
 
 // --- Hooks ---
 
