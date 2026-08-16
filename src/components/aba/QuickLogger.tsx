@@ -8,11 +8,15 @@ const SESSION_MINUTES = 50;
 const SESSION_SECONDS = SESSION_MINUTES * 60;
 
 const ANTECEDENTES = [
-  { emoji: "⚠️", label: "Demanda", tag: "Demanda acadêmica" },
-  { emoji: "🗣️", label: "Baixa Atenção", tag: "Retirada de atenção" },
+  { emoji: "📋", label: "Instrução/demanda", tag: "Instrução/demanda" },
+  { emoji: "👀", label: "Desvio de atenção", tag: "Desvio de atenção" },
+  { emoji: "👥", label: "Interação social", tag: "Interação social" },
+  { emoji: "🧸", label: "Objeto preferido", tag: "Objeto preferido" },
+  { emoji: "😖", label: "Atividade aversiva", tag: "Atividade aversiva" },
+  { emoji: "🧍", label: "Presença de outra pessoa", tag: "Presença de outra pessoa" },
+  { emoji: "🙍", label: "Sozinho(a)", tag: "Sozinho(a)" },
   { emoji: "🚫", label: "Item Negado", tag: "Restrição de acesso" },
   { emoji: "🔄", label: "Transição", tag: "Transição de atividade" },
-  { emoji: "🧱", label: "Sozinho", tag: "Sozinho / sem demandas" },
   { emoji: "🤢", label: "Dor/Fome", tag: "Desconforto físico (fome, sono, dor)" },
 ];
 

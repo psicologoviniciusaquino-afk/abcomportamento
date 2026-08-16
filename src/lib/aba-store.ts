@@ -191,8 +191,9 @@ export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente"
   if (/(atenção social|atenção verbal|contato físico|proximidade|atenção dada|retirada da atenção)/.test(t)) return "Atenção";
   if (/(acesso ao objeto|entrega do objeto|alimento|item fornecido|tangível|retirada do objeto)/.test(t)) return "Tangível";
   if (/(nenhuma consequência|ignorado|sozinho|sem estímulos|excesso de estímulos|desconforto)/.test(t)) return "Sensorial";
-  if (/(demanda|transição|rotina)/.test(t)) return "Fuga";
-  if (/(retirada de atenção)/.test(t)) return "Atenção";
-  if (/(restrição de acesso|atraso|espera|item negado)/.test(t)) return "Tangível";
+  if (/(demanda|transição|rotina|instrução|atividade aversiva)/.test(t)) return "Fuga";
+  if (/(retirada de atenção|desvio de atenção|interação social)/.test(t)) return "Atenção";
+  if (/(restrição de acesso|atraso|espera|item negado|objeto preferido)/.test(t)) return "Tangível";
+  if (/(sozinho)/.test(t)) return "Sensorial";
   return "Pendente";
 }

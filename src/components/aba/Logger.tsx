@@ -8,19 +8,20 @@ const ANT_GROUPS: { category: string; hint: string; tags: string[] }[] = [
   {
     category: "Demandas (Fuga/Esquiva)",
     hint: "Pistas de função de fuga",
-    tags: ["Demanda acadêmica", "Demanda de rotina", "Transição de atividade"],
+    tags: ["Demanda acadêmica", "Demanda de rotina", "Transição de atividade", "Instrução/demanda", "Atividade aversiva"],
   },
   {
     category: "Sociais (Atenção/Tangível)",
     hint: "Pistas de atenção ou tangível",
-    tags: ["Retirada de atenção", "Restrição de acesso", "Atraso/espera por item"],
+    tags: ["Retirada de atenção", "Restrição de acesso", "Atraso/espera por item", "Desvio de atenção", "Interação social", "Objeto preferido", "Presença de outra pessoa"],
   },
   {
     category: "Ambientais / Orgânicos (Sensorial)",
     hint: "Pistas de função automática",
-    tags: ["Excesso de estímulos (barulho/luz)", "Sozinho / sem demandas", "Desconforto físico (fome, sono, dor)"],
+    tags: ["Excesso de estímulos (barulho/luz)", "Sozinho / sem demandas", "Desconforto físico (fome, sono, dor)", "Sozinho(a)", "Outro"],
   },
 ];
+
 const CON_GROUPS: { category: string; hint: string; tags: string[] }[] = [
   {
     category: "Reforço Positivo Social (Atenção)",
@@ -63,6 +64,28 @@ export const CON_ICONS: Record<string, string> = {
   "Retirada do objeto preferido": "📤",
   "Nenhuma consequência social visível": "🤷",
 };
+
+export const ANT_ICONS: Record<string, string> = {
+  "Demanda acadêmica": "📚",
+  "Demanda de rotina": "🪥",
+  "Transição de atividade": "🔄",
+  "Instrução/demanda": "📋",
+  "Atividade aversiva": "😖",
+  "Retirada de atenção": "🚶",
+  "Restrição de acesso": "🚫",
+  "Atraso/espera por item": "⏳",
+  "Desvio de atenção": "👀",
+  "Interação social": "👥",
+  "Objeto preferido": "🧸",
+  "Presença de outra pessoa": "🧍",
+  "Excesso de estímulos (barulho/luz)": "🔊",
+  "Sozinho / sem demandas": "🧱",
+  "Sozinho(a)": "🙍",
+  "Desconforto físico (fome, sono, dor)": "🤢",
+  "Outro": "📝",
+};
+
+export const TAG_ICONS: Record<string, string> = { ...ANT_ICONS, ...CON_ICONS };
 const ENV_TAGS = [
   "Ambiente barulhento",
   "Muitas pessoas",
@@ -359,7 +382,7 @@ function TagRow({ tags, active, onToggle }: { tags: string[]; active: string[]; 
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
             )}>
-            {CON_ICONS[t] ? <span className="mr-1">{CON_ICONS[t]}</span> : null}{t}
+            {TAG_ICONS[t] ? <span className="mr-1">{TAG_ICONS[t]}</span> : null}{t}
           </button>
         );
       })}
