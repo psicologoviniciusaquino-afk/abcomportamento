@@ -25,17 +25,22 @@ const CON_GROUPS: { category: string; hint: string; tags: string[] }[] = [
   {
     category: "Reforço Positivo Social (Atenção)",
     hint: "→ Função Atenção",
-    tags: ["Atenção verbal direta (bronca/consolo)", "Contato físico / proximidade"],
+    tags: ["Atenção social", "Atenção verbal direta (bronca/consolo)", "Contato físico / proximidade"],
   },
   {
     category: "Reforço Positivo Material (Tangível)",
     hint: "→ Função Tangível",
-    tags: ["Entrega do objeto/alimento preferido"],
+    tags: ["Acesso ao objeto preferido", "Entrega do objeto/alimento preferido"],
   },
   {
     category: "Reforço Negativo (Fuga/Esquiva)",
     hint: "→ Função Fuga",
-    tags: ["Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente"],
+    tags: ["Retirada da tarefa", "Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente"],
+  },
+  {
+    category: "Retirada de Reforçador (Punição/Extinção)",
+    hint: "Consequências que removem reforçadores",
+    tags: ["Retirada da atenção", "Retirada do objeto preferido"],
   },
   {
     category: "Reforço Automático (Sensorial)",
@@ -43,6 +48,21 @@ const CON_GROUPS: { category: string; hint: string; tags: string[] }[] = [
     tags: ["Nenhuma consequência social visível"],
   },
 ];
+
+export const CON_ICONS: Record<string, string> = {
+  "Atenção social": "🗣️",
+  "Atenção verbal direta (bronca/consolo)": "💬",
+  "Contato físico / proximidade": "🤝",
+  "Acesso ao objeto preferido": "🧸",
+  "Entrega do objeto/alimento preferido": "🍎",
+  "Retirada da tarefa": "🛑",
+  "Retirada da tarefa / pausa": "⏸️",
+  "Redução da exigência (ajuda total)": "🤲",
+  "Retirada do ambiente": "🚪",
+  "Retirada da atenção": "🙈",
+  "Retirada do objeto preferido": "📤",
+  "Nenhuma consequência social visível": "🤷",
+};
 const ENV_TAGS = [
   "Ambiente barulhento",
   "Muitas pessoas",
@@ -339,7 +359,7 @@ function TagRow({ tags, active, onToggle }: { tags: string[]; active: string[]; 
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
             )}>
-            {t}
+            {CON_ICONS[t] ? <span className="mr-1">{CON_ICONS[t]}</span> : null}{t}
           </button>
         );
       })}

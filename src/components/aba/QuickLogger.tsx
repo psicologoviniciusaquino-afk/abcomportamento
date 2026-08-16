@@ -26,9 +26,11 @@ const COMPORTAMENTOS = [
 ];
 
 const CONSEQUENCIAS = [
-  { emoji: "🛑", label: "Pausa/Fuga", tag: "Retirada da tarefa / pausa" },
-  { emoji: "🧸", label: "Ganhou Item", tag: "Entrega do objeto/alimento preferido" },
-  { emoji: "💬", label: "Ganhou Atenção", tag: "Atenção verbal direta (bronca/consolo)" },
+  { emoji: "🗣️", label: "Atenção social", tag: "Atenção verbal direta (bronca/consolo)" },
+  { emoji: "🧸", label: "Acesso ao objeto preferido", tag: "Entrega do objeto/alimento preferido" },
+  { emoji: "🛑", label: "Retirada da tarefa", tag: "Retirada da tarefa / pausa" },
+  { emoji: "🙈", label: "Retirada da atenção", tag: "Retirada da atenção" },
+  { emoji: "📤", label: "Retirada do objeto preferido", tag: "Retirada do objeto preferido" },
   { emoji: "🤷", label: "Ignorado", tag: "Nenhuma consequência social visível" },
 ];
 
