@@ -22,10 +22,23 @@ const ANTECEDENTES = [
 
 const COMPORTAMENTOS = [
   { emoji: "💥", label: "Agressão" },
-  { emoji: "😭", label: "Choro" },
+  { emoji: "🤕", label: "Autolesão" },
+  { emoji: "😭", label: "Choro/Grito" },
+  { emoji: "🏃", label: "Fuga/Esquiva" },
   { emoji: "🔄", label: "Estereotipia" },
-  { emoji: "🏃", label: "Fuga" },
   { emoji: "🙅", label: "Recusa" },
+];
+
+const MAIS_COMPORTAMENTOS = [
+  { emoji: "🦷", label: "Morder" },
+  { emoji: "🤸", label: "Se jogar" },
+  { emoji: "🖐️", label: "Arranhar" },
+  { emoji: "🌪️", label: "Destruição" },
+  { emoji: "🤏", label: "Beliscar" },
+  { emoji: "✊", label: "Puxar Cabelo" },
+  { emoji: "💦", label: "Cuspir" },
+  { emoji: "🗣️", label: "Xingamento" },
+  { emoji: "👕", label: "Despir-se" },
   { emoji: "📝", label: "Outro" },
 ];
 
@@ -53,6 +66,7 @@ export function QuickLogger() {
   const [flash, setFlash] = useState(false);
   const [customBeh, setCustomBeh] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+  const [showMoreBeh, setShowMoreBeh] = useState(false);
   const customRef = useRef<HTMLInputElement>(null);
 
   // Session timer state
@@ -262,6 +276,13 @@ export function QuickLogger() {
                 onClick={() => pickBeh(b)} />
             ))}
           </Grid>
+          <button
+            type="button"
+            onClick={() => setShowMoreBeh(true)}
+            className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-background py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+          >
+            <span className="text-base">➕</span> Mais Opções
+          </button>
           {showCustom && (
             <div className="mt-3 flex gap-2">
               <input
@@ -279,6 +300,33 @@ export function QuickLogger() {
             </div>
           )}
         </Block>
+
+        {showMoreBeh && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowMoreBeh(false)} />
+            <div className="relative w-full sm:max-w-md max-h-[80vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-card border border-border shadow-2xl p-4 pb-6 animate-[fade_200ms_ease-out]">
+              <div className="flex items-center justify-between mb-1">
+                <div>
+                  <div className="text-base font-bold tracking-tight">Mais Comportamentos</div>
+                  <div className="text-[11px] text-muted-foreground">Opções específicas</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowMoreBeh(false)}
+                  className="size-9 rounded-full grid place-items-center bg-muted text-muted-foreground hover:text-foreground"
+                  aria-label="Fechar"
+                >✕</button>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                {MAIS_COMPORTAMENTOS.map((b) => (
+                  <TapCard key={b.label} emoji={b.emoji} label={b.label}
+                    selected={beh?.label === b.label}
+                    onClick={() => { pickBeh(b); setShowMoreBeh(false); }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <Block
           title="Consequência"
