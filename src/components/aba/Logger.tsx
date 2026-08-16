@@ -8,19 +8,20 @@ const ANT_GROUPS: { category: string; hint: string; tags: string[] }[] = [
   {
     category: "Demandas (Fuga/Esquiva)",
     hint: "Pistas de função de fuga",
-    tags: ["Demanda acadêmica", "Demanda de rotina", "Transição de atividade"],
+    tags: ["Demanda acadêmica", "Demanda de rotina", "Transição de atividade", "Instrução/demanda", "Atividade aversiva"],
   },
   {
     category: "Sociais (Atenção/Tangível)",
     hint: "Pistas de atenção ou tangível",
-    tags: ["Retirada de atenção", "Restrição de acesso", "Atraso/espera por item"],
+    tags: ["Retirada de atenção", "Restrição de acesso", "Atraso/espera por item", "Desvio de atenção", "Interação social", "Objeto preferido", "Presença de outra pessoa"],
   },
   {
     category: "Ambientais / Orgânicos (Sensorial)",
     hint: "Pistas de função automática",
-    tags: ["Excesso de estímulos (barulho/luz)", "Sozinho / sem demandas", "Desconforto físico (fome, sono, dor)"],
+    tags: ["Excesso de estímulos (barulho/luz)", "Sozinho / sem demandas", "Desconforto físico (fome, sono, dor)", "Sozinho(a)", "Outro"],
   },
 ];
+
 const CON_GROUPS: { category: string; hint: string; tags: string[] }[] = [
   {
     category: "Reforço Positivo Social (Atenção)",
