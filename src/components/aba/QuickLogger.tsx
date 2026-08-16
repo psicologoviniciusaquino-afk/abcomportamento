@@ -66,6 +66,7 @@ export function QuickLogger() {
   const [flash, setFlash] = useState(false);
   const [customBeh, setCustomBeh] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+  const [showMoreBeh, setShowMoreBeh] = useState(false);
   const customRef = useRef<HTMLInputElement>(null);
 
   // Session timer state
