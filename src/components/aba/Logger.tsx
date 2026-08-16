@@ -64,6 +64,28 @@ export const CON_ICONS: Record<string, string> = {
   "Retirada do objeto preferido": "📤",
   "Nenhuma consequência social visível": "🤷",
 };
+
+export const ANT_ICONS: Record<string, string> = {
+  "Demanda acadêmica": "📚",
+  "Demanda de rotina": "🪥",
+  "Transição de atividade": "🔄",
+  "Instrução/demanda": "📋",
+  "Atividade aversiva": "😖",
+  "Retirada de atenção": "🚶",
+  "Restrição de acesso": "🚫",
+  "Atraso/espera por item": "⏳",
+  "Desvio de atenção": "👀",
+  "Interação social": "👥",
+  "Objeto preferido": "🧸",
+  "Presença de outra pessoa": "🧍",
+  "Excesso de estímulos (barulho/luz)": "🔊",
+  "Sozinho / sem demandas": "🧱",
+  "Sozinho(a)": "🙍",
+  "Desconforto físico (fome, sono, dor)": "🤢",
+  "Outro": "📝",
+};
+
+export const TAG_ICONS: Record<string, string> = { ...ANT_ICONS, ...CON_ICONS };
 const ENV_TAGS = [
   "Ambiente barulhento",
   "Muitas pessoas",
