@@ -22,10 +22,23 @@ const ANTECEDENTES = [
 
 const COMPORTAMENTOS = [
   { emoji: "💥", label: "Agressão" },
-  { emoji: "😭", label: "Choro" },
+  { emoji: "🤕", label: "Autolesão" },
+  { emoji: "😭", label: "Choro/Grito" },
+  { emoji: "🏃", label: "Fuga/Esquiva" },
   { emoji: "🔄", label: "Estereotipia" },
-  { emoji: "🏃", label: "Fuga" },
   { emoji: "🙅", label: "Recusa" },
+];
+
+const MAIS_COMPORTAMENTOS = [
+  { emoji: "🦷", label: "Morder" },
+  { emoji: "🤸", label: "Se jogar" },
+  { emoji: "🖐️", label: "Arranhar" },
+  { emoji: "🌪️", label: "Destruição" },
+  { emoji: "🤏", label: "Beliscar" },
+  { emoji: "✊", label: "Puxar Cabelo" },
+  { emoji: "💦", label: "Cuspir" },
+  { emoji: "🗣️", label: "Xingamento" },
+  { emoji: "👕", label: "Despir-se" },
   { emoji: "📝", label: "Outro" },
 ];
 
