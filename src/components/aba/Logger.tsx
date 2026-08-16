@@ -359,7 +359,7 @@ function TagRow({ tags, active, onToggle }: { tags: string[]; active: string[]; 
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
             )}>
-            {t}
+            {CON_ICONS[t] ? <span className="mr-1">{CON_ICONS[t]}</span> : null}{t}
           </button>
         );
       })}
