@@ -193,7 +193,103 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
         )}
       </div>
 
+      <FunctionPie logs={filteredLogs} />
+
       <ScatterPanel logs={filteredLogs} />
+
+      <PdfHistoryPanel />
+    </div>
+  );
+}
+
+const PIE_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+
+function FunctionPie({ logs }: { logs: ABCLog[] }) {
+  const counts: Record<string, number> = {};
+  logs.forEach((l) => {
+    const fn =
+      l.hypothesizedFunction && l.hypothesizedFunction !== "Pendente"
+        ? l.hypothesizedFunction
+        : inferFunctionFromTags([...(l.consequenceTags ?? []), ...(l.antecedentTags ?? [])]);
+    counts[fn] = (counts[fn] ?? 0) + 1;
+  });
+  const data = Object.entries(counts).map(([name, value]) => ({ name, value }));
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-4">
+        <PieIcon className="size-4 text-primary" />
+        <h2 className="font-semibold">Distribuição das Funções (Pizza)</h2>
+      </div>
+      {data.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Registre ocorrências para visualizar a distribuição das funções.</p>
+      ) : (
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={50}
+                outerRadius={95}
+                paddingAngle={2}
+                label={(e: { name?: string; percent?: number }) => `${e.name}: ${Math.round((e.percent ?? 0) * 100)}%`}
+                labelLine={false}
+              >
+                {data.map((_, i) => (
+                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
+              />
+              <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PdfHistoryPanel() {
+  const { entries, clear } = usePdfHistory();
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <History className="size-4 text-primary" />
+          <h2 className="font-semibold">Histórico de PDFs</h2>
+        </div>
+        {entries.length > 0 && (
+          <button
+            onClick={() => { clear(); toast.success("Histórico limpo"); }}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="size-3.5" /> Limpar
+          </button>
+        )}
+      </div>
+      {entries.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum relatório gerado ainda. Use “Exportar PDF” para criar o primeiro.</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {entries.map((e) => (
+            <li key={e.id} className="py-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium truncate">{e.fileName}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {new Date(e.createdAt).toLocaleString("pt-BR")} • {e.childName}
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground shrink-0 text-right">
+                {e.logs} registros<br />{e.sessions} sessões
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
