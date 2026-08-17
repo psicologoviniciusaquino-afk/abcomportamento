@@ -195,6 +195,8 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
 
       <FunctionPie logs={filteredLogs} />
 
+      <BehaviorPie logs={filteredLogs} />
+
       <ScatterPanel logs={filteredLogs} />
 
       <PdfHistoryPanel />
