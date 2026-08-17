@@ -208,13 +208,13 @@ export function QuickLogger() {
             <button
               type="button"
               onClick={() => setShowNewChild((v) => !v)}
-              className="shrink-0 size-10 rounded-lg bg-primary text-primary-foreground grid place-items-center text-lg font-bold"
+              className="shrink-0 h-10 px-3 rounded-lg bg-primary text-primary-foreground inline-flex items-center gap-1 text-sm font-semibold"
               aria-label="Novo paciente"
             >
-              {showNewChild ? "×" : "+"}
+              {showNewChild ? "×" : "+ Novo"}
             </button>
           </div>
-          {showNewChild && (
+          {(showNewChild || (!childrenLoading && children.length === 0)) && (
             <div className="flex gap-2">
               <input
                 ref={newChildRef}
