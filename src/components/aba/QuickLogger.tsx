@@ -87,6 +87,30 @@ export function QuickLogger() {
   }, [showCustom]);
 
   useEffect(() => {
+    if (showNewChild) newChildRef.current?.focus();
+  }, [showNewChild]);
+
+  // Seleciona automaticamente o paciente recém-criado
+  useEffect(() => {
+    if (!pendingChildName) return;
+    const found = children.find((c) => c.name === pendingChildName);
+    if (found) {
+      setChildId(found.id);
+      setPendingChildName(null);
+    }
+  }, [children, pendingChildName]);
+
+  const saveNewChild = () => {
+    const name = newChildName.trim();
+    if (!name) return;
+    addChild(name);
+    setPendingChildName(name);
+    setNewChildName("");
+    setShowNewChild(false);
+    toast.success("Paciente adicionado", { description: name });
+  };
+
+  useEffect(() => {
     if (!running) return;
     const id = setInterval(() => {
       setRemaining((r) => {
