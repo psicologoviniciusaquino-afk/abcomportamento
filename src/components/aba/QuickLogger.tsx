@@ -56,7 +56,11 @@ type Step = 0 | 1 | 2;
 
 export function QuickLogger() {
   const { add } = useLogs();
-  const { children, isLoading: childrenLoading } = useChildren();
+  const { children, isLoading: childrenLoading, add: addChild } = useChildren();
+  const [showNewChild, setShowNewChild] = useState(false);
+  const [newChildName, setNewChildName] = useState("");
+  const [pendingChildName, setPendingChildName] = useState<string | null>(null);
+  const newChildRef = useRef<HTMLInputElement>(null);
   const [childId, setChildId] = useState<string>("");
   const [phase, setPhase] = useState<Phase>("baseline");
   const [step, setStep] = useState<Step>(0);
@@ -81,6 +85,30 @@ export function QuickLogger() {
   useEffect(() => {
     if (showCustom) customRef.current?.focus();
   }, [showCustom]);
+
+  useEffect(() => {
+    if (showNewChild) newChildRef.current?.focus();
+  }, [showNewChild]);
+
+  // Seleciona automaticamente o paciente recém-criado
+  useEffect(() => {
+    if (!pendingChildName) return;
+    const found = children.find((c) => c.name === pendingChildName);
+    if (found) {
+      setChildId(found.id);
+      setPendingChildName(null);
+    }
+  }, [children, pendingChildName]);
+
+  const saveNewChild = () => {
+    const name = newChildName.trim();
+    if (!name) return;
+    addChild(name);
+    setPendingChildName(name);
+    setNewChildName("");
+    setShowNewChild(false);
+    toast.success("Paciente adicionado", { description: name });
+  };
 
   useEffect(() => {
     if (!running) return;
@@ -163,19 +191,47 @@ export function QuickLogger() {
       {flash && <div className="pointer-events-none fixed inset-0 z-50 bg-success/30 animate-[fade_350ms_ease-out]" />}
 
       <header className="sticky top-0 z-30 bg-card/95 backdrop-blur border-b border-border px-3 py-3 space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="size-9 rounded-xl bg-primary/10 grid place-items-center shrink-0">
-            <Zap className="size-5 text-primary" />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="size-9 rounded-xl bg-primary/10 grid place-items-center shrink-0">
+              <Zap className="size-5 text-primary" />
+            </div>
+            <select
+              value={childId}
+              onChange={(e) => setChildId(e.target.value)}
+              className="flex-1 bg-background border border-input rounded-lg px-3 py-2.5 text-sm font-medium"
+              disabled={childrenLoading}
+            >
+              <option value="">— Selecionar paciente —</option>
+              {children.map((c: Child) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setShowNewChild((v) => !v)}
+              className="shrink-0 size-10 rounded-lg bg-primary text-primary-foreground grid place-items-center text-lg font-bold"
+              aria-label="Novo paciente"
+            >
+              {showNewChild ? "×" : "+"}
+            </button>
           </div>
-          <select
-            value={childId}
-            onChange={(e) => setChildId(e.target.value)}
-            className="flex-1 bg-background border border-input rounded-lg px-3 py-2.5 text-sm font-medium"
-            disabled={childrenLoading}
-          >
-            <option value="">— Selecionar paciente —</option>
-            {children.map((c: Child) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-          </select>
+          {showNewChild && (
+            <div className="flex gap-2">
+              <input
+                ref={newChildRef}
+                value={newChildName}
+                onChange={(e) => setNewChildName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveNewChild(); }}
+                placeholder="Nome do paciente"
+                className="flex-1 bg-background border border-input rounded-lg px-3 py-2.5 text-sm"
+              />
+              <button
+                type="button"
+                onClick={saveNewChild}
+                disabled={!newChildName.trim()}
+                className="px-4 rounded-lg bg-success text-success-foreground text-sm font-semibold disabled:opacity-50"
+              >Salvar</button>
+            </div>
+          )}
         </div>
 
         {/* Timer */}

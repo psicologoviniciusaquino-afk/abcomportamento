@@ -1,6 +1,7 @@
 import { ABCLog, FASession, Child } from "./aba-store";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { recordPdf } from "./pdf-history";
 
 function childName(child: Child | null | undefined, fallback = "—"): string {
   return child?.name ?? fallback;
@@ -145,7 +146,15 @@ export function exportPdf(
     doc.text(`Página ${i} de ${pageCount} • Rastreador ABC & Simulador FA`, 14, 290);
   }
 
-  doc.save(`relatorio-aba-${new Date().toISOString().slice(0, 10)}.pdf`);
+  const fileName = `relatorio-aba-${new Date().toISOString().slice(0, 10)}.pdf`;
+  doc.save(fileName);
+
+  recordPdf({
+    fileName,
+    childName: childName(selectedChild, "Todos os pacientes"),
+    logs: filteredLogs.length,
+    sessions: filteredSessions.length,
+  });
 }
 
 function topTag(logs: ABCLog[], key: "antecedentTags" | "consequenceTags"): string {
