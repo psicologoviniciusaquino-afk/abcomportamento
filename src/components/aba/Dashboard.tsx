@@ -1,11 +1,12 @@
-import { ABCLog, FASession, Child, computeTopAntecedent, computeTopConsequence, computeHypothesis, useChildren } from "@/lib/aba-store";
-import { Activity, Target, HelpCircle, TrendingUp, FileDown, CalendarClock, Lightbulb, User } from "lucide-react";
+import { ABCLog, FASession, Child, computeTopAntecedent, computeTopConsequence, computeHypothesis, useChildren, inferFunctionFromTags } from "@/lib/aba-store";
+import { Activity, Target, HelpCircle, TrendingUp, FileDown, CalendarClock, Lightbulb, User, PieChart as PieIcon, History, Trash2 } from "lucide-react";
 import { useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
-  ScatterChart, Scatter, ZAxis,
+  ScatterChart, Scatter, ZAxis, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { exportPdf } from "@/lib/aba-pdf";
+import { usePdfHistory } from "@/lib/pdf-history";
 import { toast } from "sonner";
 
 export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASession[] }) {
