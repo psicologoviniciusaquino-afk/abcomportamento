@@ -1,6 +1,7 @@
 import { ABCLog, FASession, Child } from "./aba-store";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { recordPdf } from "./pdf-history";
 
 function childName(child: Child | null | undefined, fallback = "—"): string {
   return child?.name ?? fallback;
