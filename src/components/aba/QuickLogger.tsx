@@ -56,7 +56,11 @@ type Step = 0 | 1 | 2;
 
 export function QuickLogger() {
   const { add } = useLogs();
-  const { children, isLoading: childrenLoading } = useChildren();
+  const { children, isLoading: childrenLoading, add: addChild } = useChildren();
+  const [showNewChild, setShowNewChild] = useState(false);
+  const [newChildName, setNewChildName] = useState("");
+  const [pendingChildName, setPendingChildName] = useState<string | null>(null);
+  const newChildRef = useRef<HTMLInputElement>(null);
   const [childId, setChildId] = useState<string>("");
   const [phase, setPhase] = useState<Phase>("baseline");
   const [step, setStep] = useState<Step>(0);
