@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { inferFunctionFromTags, useLogs, useChildren, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Check, Zap, Play, Pause, RotateCcw, Timer } from "lucide-react";
+import { Check, Zap, Play, Pause, RotateCcw, Timer, Activity } from "lucide-react";
 
 const SESSION_MINUTES = 50;
 const SESSION_SECONDS = SESSION_MINUTES * 60;
