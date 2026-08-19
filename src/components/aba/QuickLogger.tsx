@@ -72,6 +72,16 @@ export function QuickLogger() {
   const [showCustom, setShowCustom] = useState(false);
   const [showMoreBeh, setShowMoreBeh] = useState(false);
   const customRef = useRef<HTMLInputElement>(null);
+  const [activity, setActivity] = useState<string>("");
+  const [customActivity, setCustomActivity] = useState("");
+
+  const ATIVIDADES = [
+    { emoji: "👨‍🏫", label: "Instrução de grupo grande" },
+    { emoji: "👥", label: "Trabalho em pequenos grupos" },
+    { emoji: "✍️", label: "Trabalho independente" },
+    { emoji: "🧩", label: "Tempo não estruturado" },
+    { emoji: "✏️", label: "Especificar" },
+  ];
 
   // Session timer state
   const [remaining, setRemaining] = useState(SESSION_SECONDS);
