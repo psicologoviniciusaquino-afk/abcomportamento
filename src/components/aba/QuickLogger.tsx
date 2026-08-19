@@ -196,13 +196,6 @@ export function QuickLogger() {
     resetForm();
   };
 
-  const resetForm = () => {
-    setAnt(null); setBeh(null); setCon(null);
-    setCustomBeh(""); setShowCustom(false);
-    setActivity(""); setCustomActivity("");
-    setStep(0);
-  };
-
   const childMap = new Map(children.map((c) => [c.id, c] as const));
 
   return (
