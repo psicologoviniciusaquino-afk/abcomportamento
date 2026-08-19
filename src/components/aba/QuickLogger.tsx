@@ -273,6 +273,39 @@ export function QuickLogger() {
           </div>
         </div>
 
+        {/* Atividade em execução */}
+        <div className="rounded-xl border border-border bg-background p-2.5 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <Activity className="size-3.5" /> Atividade em execução
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {ATIVIDADES.map((a) => {
+              const selected = activity === a.label || (a.label === "Especificar" && activity === "__custom");
+              return (
+                <button
+                  key={a.label}
+                  type="button"
+                  onClick={() => setActivity(a.label === "Especificar" ? "__custom" : a.label)}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium transition-all text-left",
+                    selected ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40"
+                  )}
+                >
+                  <span className="text-base">{a.emoji}</span> <span className="leading-tight">{a.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          {activity === "__custom" && (
+            <input
+              value={customActivity}
+              onChange={(e) => setCustomActivity(e.target.value)}
+              placeholder="Especificar a atividade..."
+              className="w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
+            />
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-xl">
           <button
             onClick={() => setPhase("baseline")}
