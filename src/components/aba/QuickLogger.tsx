@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { inferFunctionFromTags, useLogs, useChildren, Child } from "@/lib/aba-store";
+import { inferFunctionFromTags, useLogs, useChildren, useCustomActivities, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Check, Zap, Play, Pause, RotateCcw, Timer, Activity } from "lucide-react";
