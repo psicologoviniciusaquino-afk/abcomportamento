@@ -4,51 +4,62 @@ import { toast } from "sonner";
 import { Trash2, Plus, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ANT_GROUPS: { category: string; hint: string; tags: string[] }[] = [
+type TagGroup = { category: string; hint: string; tags: string[]; tone: string };
+
+const ANT_GROUPS: TagGroup[] = [
   {
     category: "Demandas (Fuga/Esquiva)",
     hint: "Pistas de função de fuga",
+    tone: "var(--chart-2)",
     tags: ["Demanda acadêmica", "Demanda de rotina", "Transição de atividade", "Instrução/demanda", "Atividade aversiva"],
   },
   {
     category: "Sociais (Atenção/Tangível)",
     hint: "Pistas de atenção ou tangível",
+    tone: "var(--chart-1)",
     tags: ["Retirada de atenção", "Restrição de acesso", "Atraso/espera por item", "Desvio de atenção", "Interação social", "Objeto preferido", "Presença de outra pessoa"],
   },
   {
     category: "Ambientais / Orgânicos (Sensorial)",
     hint: "Pistas de função automática",
+    tone: "var(--chart-3)",
     tags: ["Excesso de estímulos (barulho/luz)", "Sozinho / sem demandas", "Desconforto físico (fome, sono, dor)", "Sozinho(a)", "Outro"],
   },
 ];
 
-const CON_GROUPS: { category: string; hint: string; tags: string[] }[] = [
+const CON_GROUPS: TagGroup[] = [
   {
     category: "Reforço Positivo Social (Atenção)",
     hint: "→ Função Atenção",
+    tone: "var(--chart-1)",
     tags: ["Atenção social", "Atenção verbal direta (bronca/consolo)", "Contato físico / proximidade"],
   },
   {
     category: "Reforço Positivo Material (Tangível)",
     hint: "→ Função Tangível",
+    tone: "var(--chart-4)",
     tags: ["Acesso ao objeto preferido", "Entrega do objeto/alimento preferido"],
   },
   {
     category: "Reforço Negativo (Fuga/Esquiva)",
     hint: "→ Função Fuga",
+    tone: "var(--chart-2)",
     tags: ["Retirada da tarefa", "Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente"],
   },
   {
     category: "Retirada de Reforçador (Punição/Extinção)",
     hint: "Consequências que removem reforçadores",
+    tone: "var(--chart-5)",
     tags: ["Retirada da atenção", "Retirada do objeto preferido"],
   },
   {
     category: "Reforço Automático (Sensorial)",
     hint: "→ Função Sensorial",
+    tone: "var(--chart-3)",
     tags: ["Nenhuma consequência social visível"],
   },
 ];
+
 
 export const CON_ICONS: Record<string, string> = {
   "Atenção social": "🗣️",
@@ -369,11 +380,24 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function TagRow({ tags, active, onToggle }: { tags: string[]; active: string[]; onToggle: (t: string) => void }) {
+function TagRow({ tags, active, onToggle, toned }: { tags: string[]; active: string[]; onToggle: (t: string) => void; toned?: boolean }) {
   return (
     <div className="flex flex-wrap gap-2 pt-1">
       {tags.map((t) => {
         const on = active.includes(t);
+        if (toned) {
+          return (
+            <button type="button" key={t} onClick={() => onToggle(t)}
+              className={cn(
+                "text-xs px-3 py-1.5 rounded-full border font-medium transition-all active:scale-95",
+                on
+                  ? "border-[var(--tone)] bg-[color-mix(in_oklab,var(--tone)_88%,black)] text-[var(--card)] shadow-sm"
+                  : "border-[color-mix(in_oklab,var(--tone)_35%,transparent)] bg-[color-mix(in_oklab,var(--tone)_10%,var(--card))] text-foreground/80 hover:bg-[color-mix(in_oklab,var(--tone)_20%,var(--card))]"
+              )}>
+              {TAG_ICONS[t] ? <span className="mr-1">{TAG_ICONS[t]}</span> : null}{t}
+            </button>
+          );
+        }
         return (
           <button type="button" key={t} onClick={() => onToggle(t)}
             className={cn(
@@ -395,21 +419,35 @@ function TagGroups({
   active,
   onToggle,
 }: {
-  groups: { category: string; hint: string; tags: string[] }[];
+  groups: TagGroup[];
   active: string[];
   onToggle: (t: string) => void;
 }) {
   return (
     <div className="space-y-3 pt-2">
-      {groups.map((g) => (
-        <div key={g.category} className="rounded-lg border border-border/60 bg-muted/20 p-3">
-          <div className="flex items-baseline justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold text-foreground">{g.category}</span>
-            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{g.hint}</span>
+      {groups.map((g) => {
+        const count = g.tags.filter((t) => active.includes(t)).length;
+        return (
+          <div
+            key={g.category}
+            style={{ ["--tone" as string]: g.tone }}
+            className="relative overflow-hidden rounded-xl border border-[color-mix(in_oklab,var(--tone)_25%,transparent)] bg-[color-mix(in_oklab,var(--tone)_5%,var(--card))] p-3 pl-4"
+          >
+            <span className="absolute inset-y-0 left-0 w-1.5 bg-[var(--tone)]" />
+            <div className="flex items-baseline justify-between gap-2 mb-2">
+              <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                {g.category}
+                {count > 0 && (
+                  <span className="rounded-full bg-[var(--tone)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--card)]">{count}</span>
+                )}
+              </span>
+              <span className="text-[10px] uppercase tracking-wide text-[color-mix(in_oklab,var(--tone)_70%,var(--foreground))]">{g.hint}</span>
+            </div>
+            <TagRow tags={g.tags} active={active} onToggle={onToggle} toned />
           </div>
-          <TagRow tags={g.tags} active={active} onToggle={onToggle} />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
+
