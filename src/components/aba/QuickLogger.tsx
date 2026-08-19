@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { inferFunctionFromTags, useLogs, useChildren, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Check, Zap, Play, Pause, RotateCcw, Timer } from "lucide-react";
+import { Check, Zap, Play, Pause, RotateCcw, Timer, Activity } from "lucide-react";
 
 const SESSION_MINUTES = 50;
 const SESSION_SECONDS = SESSION_MINUTES * 60;
@@ -72,6 +72,16 @@ export function QuickLogger() {
   const [showCustom, setShowCustom] = useState(false);
   const [showMoreBeh, setShowMoreBeh] = useState(false);
   const customRef = useRef<HTMLInputElement>(null);
+  const [activity, setActivity] = useState<string>("");
+  const [customActivity, setCustomActivity] = useState("");
+
+  const ATIVIDADES = [
+    { emoji: "👨‍🏫", label: "Instrução de grupo grande" },
+    { emoji: "👥", label: "Trabalho em pequenos grupos" },
+    { emoji: "✍️", label: "Trabalho independente" },
+    { emoji: "🧩", label: "Tempo não estruturado" },
+    { emoji: "✏️", label: "Especificar" },
+  ];
 
   // Session timer state
   const [remaining, setRemaining] = useState(SESSION_SECONDS);
@@ -149,6 +159,7 @@ export function QuickLogger() {
   const resetForm = () => {
     setAnt(null); setBeh(null); setCon(null);
     setCustomBeh(""); setShowCustom(false);
+    setActivity(""); setCustomActivity("");
     setStep(0);
   };
 
@@ -165,6 +176,8 @@ export function QuickLogger() {
     if (!ready || !ant || !beh || !con) return;
     const behaviorLabel = beh.label === "Outro" ? customBeh.trim() : beh.label;
     const allTags = [ant.tag, con.tag];
+    const activityLabel =
+      activity === "__custom" ? customActivity.trim() : activity;
     add({
       child_id: childId || null,
       timestamp: new Date().toISOString(),
@@ -175,7 +188,7 @@ export function QuickLogger() {
       severity: 3,
       consequence: con.label,
       consequenceTags: [con.tag],
-      environmentTags: [],
+      environmentTags: activityLabel ? [`Atividade: ${activityLabel}`] : [],
       environmentNotes: null,
     });
     setFlash(true);
@@ -261,6 +274,39 @@ export function QuickLogger() {
           <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
             <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
           </div>
+        </div>
+
+        {/* Atividade em execução */}
+        <div className="rounded-xl border border-border bg-background p-2.5 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <Activity className="size-3.5" /> Atividade em execução
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {ATIVIDADES.map((a) => {
+              const selected = activity === a.label || (a.label === "Especificar" && activity === "__custom");
+              return (
+                <button
+                  key={a.label}
+                  type="button"
+                  onClick={() => setActivity(a.label === "Especificar" ? "__custom" : a.label)}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium transition-all text-left",
+                    selected ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40"
+                  )}
+                >
+                  <span className="text-base">{a.emoji}</span> <span className="leading-tight">{a.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          {activity === "__custom" && (
+            <input
+              value={customActivity}
+              onChange={(e) => setCustomActivity(e.target.value)}
+              placeholder="Especificar a atividade..."
+              className="w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-xl">
