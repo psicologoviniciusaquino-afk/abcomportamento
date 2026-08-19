@@ -159,6 +159,7 @@ export function QuickLogger() {
   const resetForm = () => {
     setAnt(null); setBeh(null); setCon(null);
     setCustomBeh(""); setShowCustom(false);
+    setActivity(""); setCustomActivity("");
     setStep(0);
   };
 
