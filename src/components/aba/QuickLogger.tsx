@@ -301,12 +301,54 @@ export function QuickLogger() {
             })}
           </div>
           {activity === "__custom" && (
-            <input
-              value={customActivity}
-              onChange={(e) => setCustomActivity(e.target.value)}
-              placeholder="Especificar a atividade..."
-              className="w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
-            />
+            <div className="space-y-2">
+              {savedActivities.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {savedActivities.map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      onClick={() => setCustomActivity(a)}
+                      className={cn(
+                        "group inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all",
+                        customActivity === a
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-card hover:border-primary/40"
+                      )}
+                    >
+                      <span>{a}</span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); removeSavedActivity(a); if (customActivity === a) setCustomActivity(""); }}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); removeSavedActivity(a); if (customActivity === a) setCustomActivity(""); } }}
+                        className="ml-0.5 text-muted-foreground/60 hover:text-destructive"
+                        aria-label={`Remover ${a}`}
+                      >×</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  value={customActivity}
+                  onChange={(e) => setCustomActivity(e.target.value)}
+                  placeholder="Especificar a atividade..."
+                  className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const v = customActivity.trim();
+                    if (!v) return;
+                    addSavedActivity(v);
+                    toast.success("Atividade salva", { description: v });
+                  }}
+                  disabled={!customActivity.trim()}
+                  className="px-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+                >Salvar</button>
+              </div>
+            </div>
           )}
         </div>
 
