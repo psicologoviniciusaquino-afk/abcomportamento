@@ -175,6 +175,8 @@ export function QuickLogger() {
     if (!ready || !ant || !beh || !con) return;
     const behaviorLabel = beh.label === "Outro" ? customBeh.trim() : beh.label;
     const allTags = [ant.tag, con.tag];
+    const activityLabel =
+      activity === "__custom" ? customActivity.trim() : activity;
     add({
       child_id: childId || null,
       timestamp: new Date().toISOString(),
@@ -185,13 +187,20 @@ export function QuickLogger() {
       severity: 3,
       consequence: con.label,
       consequenceTags: [con.tag],
-      environmentTags: [],
+      environmentTags: activityLabel ? [`Atividade: ${activityLabel}`] : [],
       environmentNotes: null,
     });
     setFlash(true);
     setTimeout(() => setFlash(false), 350);
     toast.success("Ocorrência registrada", { description: `Função: ${inferFunctionFromTags(allTags)}` });
     resetForm();
+  };
+
+  const resetForm = () => {
+    setAnt(null); setBeh(null); setCon(null);
+    setCustomBeh(""); setShowCustom(false);
+    setActivity(""); setCustomActivity("");
+    setStep(0);
   };
 
   const childMap = new Map(children.map((c) => [c.id, c] as const));
