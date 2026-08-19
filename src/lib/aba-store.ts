@@ -197,3 +197,33 @@ export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente"
   if (/(sozinho)/.test(t)) return "Sensorial";
   return "Pendente";
 }
+
+const CUSTOM_ACTIVITIES_KEY = "aba:customActivities";
+
+export function useCustomActivities() {
+  const [activities, setActivities] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CUSTOM_ACTIVITIES_KEY);
+      if (raw) setActivities(JSON.parse(raw));
+    } catch {}
+  }, []);
+  const add = useCallback((label: string) => {
+    const v = label.trim();
+    if (!v) return;
+    setActivities((prev) => {
+      if (prev.some((a) => a.toLowerCase() === v.toLowerCase())) return prev;
+      const next = [...prev, v];
+      try { localStorage.setItem(CUSTOM_ACTIVITIES_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+  const remove = useCallback((label: string) => {
+    setActivities((prev) => {
+      const next = prev.filter((a) => a !== label);
+      try { localStorage.setItem(CUSTOM_ACTIVITIES_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+  return { activities, add, remove };
+}
