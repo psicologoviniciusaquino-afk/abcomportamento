@@ -4,51 +4,62 @@ import { toast } from "sonner";
 import { Trash2, Plus, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ANT_GROUPS: { category: string; hint: string; tags: string[] }[] = [
+type TagGroup = { category: string; hint: string; tags: string[]; tone: string };
+
+const ANT_GROUPS: TagGroup[] = [
   {
     category: "Demandas (Fuga/Esquiva)",
     hint: "Pistas de função de fuga",
+    tone: "var(--chart-2)",
     tags: ["Demanda acadêmica", "Demanda de rotina", "Transição de atividade", "Instrução/demanda", "Atividade aversiva"],
   },
   {
     category: "Sociais (Atenção/Tangível)",
     hint: "Pistas de atenção ou tangível",
+    tone: "var(--chart-1)",
     tags: ["Retirada de atenção", "Restrição de acesso", "Atraso/espera por item", "Desvio de atenção", "Interação social", "Objeto preferido", "Presença de outra pessoa"],
   },
   {
     category: "Ambientais / Orgânicos (Sensorial)",
     hint: "Pistas de função automática",
+    tone: "var(--chart-3)",
     tags: ["Excesso de estímulos (barulho/luz)", "Sozinho / sem demandas", "Desconforto físico (fome, sono, dor)", "Sozinho(a)", "Outro"],
   },
 ];
 
-const CON_GROUPS: { category: string; hint: string; tags: string[] }[] = [
+const CON_GROUPS: TagGroup[] = [
   {
     category: "Reforço Positivo Social (Atenção)",
     hint: "→ Função Atenção",
+    tone: "var(--chart-1)",
     tags: ["Atenção social", "Atenção verbal direta (bronca/consolo)", "Contato físico / proximidade"],
   },
   {
     category: "Reforço Positivo Material (Tangível)",
     hint: "→ Função Tangível",
+    tone: "var(--chart-4)",
     tags: ["Acesso ao objeto preferido", "Entrega do objeto/alimento preferido"],
   },
   {
     category: "Reforço Negativo (Fuga/Esquiva)",
     hint: "→ Função Fuga",
+    tone: "var(--chart-2)",
     tags: ["Retirada da tarefa", "Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente"],
   },
   {
     category: "Retirada de Reforçador (Punição/Extinção)",
     hint: "Consequências que removem reforçadores",
+    tone: "var(--chart-5)",
     tags: ["Retirada da atenção", "Retirada do objeto preferido"],
   },
   {
     category: "Reforço Automático (Sensorial)",
     hint: "→ Função Sensorial",
+    tone: "var(--chart-3)",
     tags: ["Nenhuma consequência social visível"],
   },
 ];
+
 
 export const CON_ICONS: Record<string, string> = {
   "Atenção social": "🗣️",
