@@ -75,6 +75,7 @@ export function QuickLogger() {
   const customRef = useRef<HTMLInputElement>(null);
   const [activity, setActivity] = useState<string>("");
   const [customActivity, setCustomActivity] = useState("");
+  const [activityOpen, setActivityOpen] = useState(false);
 
   const ATIVIDADES = [
     { emoji: "👨‍🏫", label: "Instrução de grupo grande" },
