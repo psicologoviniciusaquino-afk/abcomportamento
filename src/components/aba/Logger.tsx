@@ -110,6 +110,37 @@ const ENV_TAGS = [
   "Sem acesso a reforçador",
 ];
 
+const ENV_ICONS: Record<string, string> = {
+  "Ambiente barulhento": "🔊",
+  "Muitas pessoas": "👥",
+  "Iluminação intensa": "💡",
+  "Mudança de rotina": "🔄",
+  "Cansaço/sono": "😴",
+  "Fome": "🍽️",
+  "Calor/frio": "🌡️",
+  "Espaço restrito": "📦",
+  "Presença de estranhos": "🧍",
+  "Sem acesso a reforçador": "🚫",
+};
+
+const TARGET_SUGGESTIONS: { label: string; icon: string }[] = [
+  { label: "Agressão", icon: "💥" },
+  { label: "Autolesão", icon: "🤕" },
+  { label: "Choro/Grito", icon: "😭" },
+  { label: "Fuga/Esquiva", icon: "🏃" },
+  { label: "Estereotipia", icon: "🔄" },
+  { label: "Recusa", icon: "🙅" },
+];
+
+const SEVERITY_LEVELS: { value: number; label: string; icon: string; tone: string }[] = [
+  { value: 1, label: "Leve", icon: "🙂", tone: "var(--success)" },
+  { value: 2, label: "Baixa", icon: "😐", tone: "var(--chart-3)" },
+  { value: 3, label: "Média", icon: "😕", tone: "var(--warning)" },
+  { value: 4, label: "Alta", icon: "😠", tone: "var(--chart-2)" },
+  { value: 5, label: "Grave", icon: "🚨", tone: "var(--destructive)" },
+];
+
+
 export function Logger() {
   const { logs, add, remove, isLoading: logsLoading } = useLogs();
   const { children, addFull, remove: removeChild, isLoading: childrenLoading } = useChildren();
