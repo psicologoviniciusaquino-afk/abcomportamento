@@ -21,6 +21,10 @@ export const abcLogSchema = z.object({
   environmentNotes: z.string().max(2000).optional().nullable(),
 });
 
+export const abcLogUpdateSchema = abcLogSchema.extend({
+  id: z.string().uuid(),
+});
+
 export const faSessionSchema = z.object({
   child_id: z.string().uuid().optional().nullable(),
   condition: z.enum(["Attention", "Demand", "Tangible", "Play"]),
