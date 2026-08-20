@@ -75,6 +75,7 @@ export function QuickLogger() {
   const customRef = useRef<HTMLInputElement>(null);
   const [activity, setActivity] = useState<string>("");
   const [customActivity, setCustomActivity] = useState("");
+  const [activityOpen, setActivityOpen] = useState(false);
 
   const ATIVIDADES = [
     { emoji: "👨‍🏫", label: "Instrução de grupo grande" },
@@ -160,7 +161,7 @@ export function QuickLogger() {
   const resetForm = () => {
     setAnt(null); setBeh(null); setCon(null);
     setCustomBeh(""); setShowCustom(false);
-    setActivity(""); setCustomActivity("");
+    setActivity(""); setCustomActivity(""); setActivityOpen(false);
     setStep(0);
   };
 
@@ -277,77 +278,97 @@ export function QuickLogger() {
           </div>
         </div>
 
-        {/* Atividade em execução */}
-        <div className="rounded-xl border border-border bg-background p-2.5 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            <Activity className="size-3.5" /> Atividade em execução
-          </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            {ATIVIDADES.map((a) => {
-              const selected = activity === a.label || (a.label === "Especificar" && activity === "__custom");
-              return (
-                <button
-                  key={a.label}
-                  type="button"
-                  onClick={() => setActivity(a.label === "Especificar" ? "__custom" : a.label)}
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium transition-all text-left",
-                    selected ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40"
-                  )}
-                >
-                  <span className="text-base">{a.emoji}</span> <span className="leading-tight">{a.label}</span>
-                </button>
-              );
-            })}
-          </div>
-          {activity === "__custom" && (
-            <div className="space-y-2">
-              {savedActivities.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {savedActivities.map((a) => (
+        {/* Atividade em execução (colapsível) */}
+        <div className="rounded-xl border border-border bg-background">
+          <button
+            type="button"
+            onClick={() => setActivityOpen((v) => !v)}
+            className="w-full flex items-center justify-between gap-2 px-2.5 py-2 text-left"
+          >
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              <Activity className="size-3.5" /> Atividade
+            </div>
+            <div className="flex items-center gap-1.5">
+              {activity ? (
+                <span className="text-xs font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5 max-w-[140px] truncate">
+                  {activity === "__custom" ? (customActivity || "Especificar") : (ATIVIDADES.find((a) => a.label === activity)?.emoji ? `${ATIVIDADES.find((a) => a.label === activity)?.emoji} ${activity}` : activity)}
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground/70">Selecionar</span>
+              )}
+              <span className={cn("text-muted-foreground/60 transition-transform", activityOpen && "rotate-180")}>▾</span>
+            </div>
+          </button>
+          {activityOpen && (
+            <div className="px-2.5 pb-2.5 space-y-2">
+              <div className="grid grid-cols-2 gap-1.5">
+                {ATIVIDADES.map((a) => {
+                  const selected = activity === a.label || (a.label === "Especificar" && activity === "__custom");
+                  return (
                     <button
-                      key={a}
+                      key={a.label}
                       type="button"
-                      onClick={() => setCustomActivity(a)}
+                      onClick={() => setActivity(a.label === "Especificar" ? "__custom" : a.label)}
                       className={cn(
-                        "group inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all",
-                        customActivity === a
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-card hover:border-primary/40"
+                        "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium transition-all text-left",
+                        selected ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40"
                       )}
                     >
-                      <span>{a}</span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); removeSavedActivity(a); if (customActivity === a) setCustomActivity(""); }}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); removeSavedActivity(a); if (customActivity === a) setCustomActivity(""); } }}
-                        className="ml-0.5 text-muted-foreground/60 hover:text-destructive"
-                        aria-label={`Remover ${a}`}
-                      >×</span>
+                      <span className="text-base">{a.emoji}</span> <span className="leading-tight">{a.label}</span>
                     </button>
-                  ))}
+                  );
+                })}
+              </div>
+              {activity === "__custom" && (
+                <div className="space-y-2">
+                  {savedActivities.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {savedActivities.map((a) => (
+                        <button
+                          key={a}
+                          type="button"
+                          onClick={() => setCustomActivity(a)}
+                          className={cn(
+                            "group inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all",
+                            customActivity === a
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-card hover:border-primary/40"
+                          )}
+                        >
+                          <span>{a}</span>
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => { e.stopPropagation(); removeSavedActivity(a); if (customActivity === a) setCustomActivity(""); }}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); removeSavedActivity(a); if (customActivity === a) setCustomActivity(""); } }}
+                            className="ml-0.5 text-muted-foreground/60 hover:text-destructive"
+                            aria-label={`Remover ${a}`}
+                          >×</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      value={customActivity}
+                      onChange={(e) => setCustomActivity(e.target.value)}
+                      placeholder="Especificar a atividade..."
+                      className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const v = customActivity.trim();
+                        if (!v) return;
+                        addSavedActivity(v);
+                        toast.success("Atividade salva", { description: v });
+                      }}
+                      disabled={!customActivity.trim()}
+                      className="px-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+                    >Salvar</button>
+                  </div>
                 </div>
               )}
-              <div className="flex gap-2">
-                <input
-                  value={customActivity}
-                  onChange={(e) => setCustomActivity(e.target.value)}
-                  placeholder="Especificar a atividade..."
-                  className="flex-1 bg-background border border-input rounded-lg px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const v = customActivity.trim();
-                    if (!v) return;
-                    addSavedActivity(v);
-                    toast.success("Atividade salva", { description: v });
-                  }}
-                  disabled={!customActivity.trim()}
-                  className="px-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
-                >Salvar</button>
-              </div>
             </div>
           )}
         </div>
