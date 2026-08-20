@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { inferFunctionFromTags, useLogs, useChildren, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, X } from "lucide-react";
+import { Trash2, Plus, Save, X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TagGroup = { category: string; hint: string; tags: string[]; tone: string };
@@ -110,6 +110,37 @@ const ENV_TAGS = [
   "Sem acesso a reforçador",
 ];
 
+const ENV_ICONS: Record<string, string> = {
+  "Ambiente barulhento": "🔊",
+  "Muitas pessoas": "👥",
+  "Iluminação intensa": "💡",
+  "Mudança de rotina": "🔄",
+  "Cansaço/sono": "😴",
+  "Fome": "🍽️",
+  "Calor/frio": "🌡️",
+  "Espaço restrito": "📦",
+  "Presença de estranhos": "🧍",
+  "Sem acesso a reforçador": "🚫",
+};
+
+const TARGET_SUGGESTIONS: { label: string; icon: string }[] = [
+  { label: "Agressão", icon: "💥" },
+  { label: "Autolesão", icon: "🤕" },
+  { label: "Choro/Grito", icon: "😭" },
+  { label: "Fuga/Esquiva", icon: "🏃" },
+  { label: "Estereotipia", icon: "🔄" },
+  { label: "Recusa", icon: "🙅" },
+];
+
+const SEVERITY_LEVELS: { value: number; label: string; icon: string; tone: string }[] = [
+  { value: 1, label: "Leve", icon: "🙂", tone: "var(--success)" },
+  { value: 2, label: "Baixa", icon: "😐", tone: "var(--chart-3)" },
+  { value: 3, label: "Média", icon: "😕", tone: "var(--warning)" },
+  { value: 4, label: "Alta", icon: "😠", tone: "var(--chart-2)" },
+  { value: 5, label: "Grave", icon: "🚨", tone: "var(--destructive)" },
+];
+
+
 export function Logger() {
   const { logs, add, remove, isLoading: logsLoading } = useLogs();
   const { children, addFull, remove: removeChild, isLoading: childrenLoading } = useChildren();
@@ -119,6 +150,7 @@ export function Logger() {
   const [targetBehavior, setTargetBehavior] = useState("");
   const [envTags, setEnvTags] = useState<string[]>([]);
   const [envNotes, setEnvNotes] = useState("");
+  const [envOpen, setEnvOpen] = useState(false);
   const [antecedent, setAntecedent] = useState("");
   const [antTags, setAntTags] = useState<string[]>([]);
   const [behavior, setBehavior] = useState("");
@@ -162,7 +194,7 @@ export function Logger() {
     toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
     setAntecedent(""); setBehavior(""); setConsequence("");
     setAntTags([]); setConTags([]); setSeverity(3);
-    setEnvTags([]); setEnvNotes("");
+    setEnvTags([]); setEnvNotes(""); setEnvOpen(false);
     setTargetBehavior("");
     setTimestamp(new Date().toISOString().slice(0, 16));
   };
@@ -227,26 +259,111 @@ export function Logger() {
             placeholder="Ex.: agressão, autolesão, birra, fuga..."
             className="input"
           />
+          <div className="flex flex-wrap gap-2 pt-1">
+            {TARGET_SUGGESTIONS.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                onClick={() => setTargetBehavior(t.label)}
+                className={cn(
+                  "text-xs px-2.5 py-1 rounded-full border transition-colors",
+                  targetBehavior === t.label
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                )}
+              >
+                <span className="mr-1">{t.icon}</span>{t.label}
+              </button>
+            ))}
+          </div>
         </Field>
 
-        <Field label="Fatores Ambientais / Contexto Externo">
-          <TagRow tags={ENV_TAGS} active={envTags} onToggle={(t) => toggle(envTags, setEnvTags, t)} />
-          <textarea
-            value={envNotes}
-            onChange={(e) => setEnvNotes(e.target.value)}
-            rows={2}
-            placeholder="Outras observações do ambiente (local, pessoas presentes, eventos prévios)..."
-            className="input mt-2"
-          />
-        </Field>
-
-        <div className="grid md:grid-cols-1 gap-4">
-          <Field label={`Severidade: ${severity}/5`}>
-            <input type="range" min={1} max={5} value={severity}
-              onChange={(e) => setSeverity(Number(e.target.value))}
-              className="w-full accent-[var(--primary)]" />
-          </Field>
+        <div className="rounded-xl border border-border bg-muted/30 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setEnvOpen((v) => !v)}
+            className="w-full grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 text-left"
+          >
+            <span className="min-w-0 flex items-center gap-2">
+              <span className="text-base shrink-0">🌎</span>
+              <span className="min-w-0">
+                <span className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Fatores ambientais
+                </span>
+                <span className="block truncate text-sm text-foreground/80">
+                  {envTags.length > 0 ? envTags.join(", ") : "Contexto externo (opcional)"}
+                </span>
+              </span>
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              {envTags.length > 0 && (
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                  {envTags.length}
+                </span>
+              )}
+              <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", envOpen && "rotate-180")} />
+            </span>
+          </button>
+          {envOpen && (
+            <div className="px-4 pb-4 pt-1 border-t border-border/70">
+              <div className="flex flex-wrap gap-2 pt-2">
+                {ENV_TAGS.map((t) => {
+                  const on = envTags.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggle(envTags, setEnvTags, t)}
+                      className={cn(
+                        "text-xs px-3 py-1.5 rounded-full border font-medium transition-all active:scale-95",
+                        on
+                          ? "bg-accent text-accent-foreground border-accent-foreground/30 shadow-sm"
+                          : "bg-card border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                      )}
+                    >
+                      <span className="mr-1">{ENV_ICONS[t] ?? "•"}</span>{t}
+                    </button>
+                  );
+                })}
+              </div>
+              <textarea
+                value={envNotes}
+                onChange={(e) => setEnvNotes(e.target.value)}
+                rows={2}
+                placeholder="Outras observações do ambiente (local, pessoas presentes, eventos prévios)..."
+                className="input mt-3"
+              />
+            </div>
+          )}
         </div>
+
+        <Field label="Severidade">
+          <div className="grid grid-cols-5 gap-2">
+            {SEVERITY_LEVELS.map((s) => {
+              const on = severity === s.value;
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setSeverity(s.value)}
+                  style={{ ["--tone" as string]: s.tone }}
+                  className={cn(
+                    "rounded-xl border py-2 px-1 text-center transition-all active:scale-95",
+                    on
+                      ? "border-[var(--tone)] bg-[color-mix(in_oklab,var(--tone)_18%,var(--card))] shadow-sm"
+                      : "border-border bg-card hover:border-[color-mix(in_oklab,var(--tone)_50%,transparent)]"
+                  )}
+                >
+                  <span className="block text-base leading-none">{s.icon}</span>
+                  <span className={cn("mt-1 block text-[10px] font-semibold", on ? "text-foreground" : "text-muted-foreground")}>
+                    {s.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+
 
         <Field label="Antecedente (A)">
           <textarea value={antecedent} onChange={(e) => setAntecedent(e.target.value)}
