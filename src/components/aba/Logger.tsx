@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { inferFunctionFromTags, useLogs, useChildren, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, X } from "lucide-react";
+import { Trash2, Plus, Save, X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TagGroup = { category: string; hint: string; tags: string[]; tone: string };
@@ -150,6 +150,7 @@ export function Logger() {
   const [targetBehavior, setTargetBehavior] = useState("");
   const [envTags, setEnvTags] = useState<string[]>([]);
   const [envNotes, setEnvNotes] = useState("");
+  const [envOpen, setEnvOpen] = useState(false);
   const [antecedent, setAntecedent] = useState("");
   const [antTags, setAntTags] = useState<string[]>([]);
   const [behavior, setBehavior] = useState("");
@@ -193,7 +194,7 @@ export function Logger() {
     toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
     setAntecedent(""); setBehavior(""); setConsequence("");
     setAntTags([]); setConTags([]); setSeverity(3);
-    setEnvTags([]); setEnvNotes("");
+    setEnvTags([]); setEnvNotes(""); setEnvOpen(false);
     setTargetBehavior("");
     setTimestamp(new Date().toISOString().slice(0, 16));
   };
