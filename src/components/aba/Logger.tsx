@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { inferFunctionFromTags, useLogs, useChildren, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, X, ChevronDown } from "lucide-react";
+import { Trash2, Plus, Save, X, ChevronDown, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TagGroup = { category: string; hint: string; tags: string[]; tone: string };
@@ -142,7 +142,7 @@ const SEVERITY_LEVELS: { value: number; label: string; icon: string; tone: strin
 
 
 export function Logger() {
-  const { logs, add, remove, isLoading: logsLoading } = useLogs();
+  const { logs, add, update, remove, isLoading: logsLoading } = useLogs();
   const { children, addFull, remove: removeChild, isLoading: childrenLoading } = useChildren();
   const [timestamp, setTimestamp] = useState(() => new Date().toISOString().slice(0, 16));
   const [childId, setChildId] = useState<string>("");
@@ -157,6 +157,7 @@ export function Logger() {
   const [severity, setSeverity] = useState(3);
   const [consequence, setConsequence] = useState("");
   const [conTags, setConTags] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const childMap = new Map(children.map((c) => [c.id, c] as const));
   const selectedChild = childMap.get(childId);
@@ -178,7 +179,7 @@ export function Logger() {
       toast.error("Descreva o comportamento.");
       return;
     }
-    add({
+    const payload = {
       child_id: childId || null,
       timestamp: new Date(timestamp).toISOString(),
       phase: null,
@@ -190,13 +191,40 @@ export function Logger() {
       consequenceTags: conTags,
       environmentTags: envTags,
       environmentNotes: envNotes || null,
-    });
-    toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
+    };
+    if (editingId) {
+      update({ id: editingId, ...payload });
+      toast.success("Registro atualizado");
+    } else {
+      add(payload);
+      toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
+    }
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
     setAntecedent(""); setBehavior(""); setConsequence("");
     setAntTags([]); setConTags([]); setSeverity(3);
     setEnvTags([]); setEnvNotes(""); setEnvOpen(false);
     setTargetBehavior("");
     setTimestamp(new Date().toISOString().slice(0, 16));
+  };
+
+  const startEdit = (l: typeof logs[number]) => {
+    setEditingId(l.id);
+    setChildId(l.child_id ?? "");
+    setTimestamp(new Date(l.timestamp).toISOString().slice(0, 16));
+    setAntecedent(l.antecedent);
+    setAntTags(l.antecedentTags ?? []);
+    setBehavior(l.behavior);
+    setSeverity(l.severity);
+    setConsequence(l.consequence);
+    setConTags(l.consequenceTags ?? []);
+    setEnvTags(l.environmentTags ?? []);
+    setEnvNotes(l.environmentNotes ?? "");
+    setEnvOpen((l.environmentTags?.length ?? 0) > 0 || !!l.environmentNotes);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -207,6 +235,15 @@ export function Logger() {
           Observação direta: registre antecedentes, comportamentos e consequências.
         </p>
       </header>
+
+      {editingId && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm">
+          <span className="font-medium text-foreground">Editando registro existente</span>
+          <button type="button" onClick={resetForm} className="text-xs text-muted-foreground hover:text-destructive">
+            Cancelar edição
+          </button>
+        </div>
+      )}
 
       <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm space-y-5">
         <div className="grid md:grid-cols-2 gap-4">
@@ -382,9 +419,14 @@ export function Logger() {
           <TagGroups groups={CON_GROUPS} active={conTags} onToggle={(t) => toggle(conTags, setConTags, t)} />
         </Field>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {editingId && (
+            <button type="button" onClick={resetForm} className="btn-secondary">
+              <X className="size-4" /> Cancelar
+            </button>
+          )}
           <button type="submit" className="btn-primary">
-            <Save className="size-4" /> Salvar Registro
+            <Save className="size-4" /> {editingId ? "Atualizar Registro" : "Salvar Registro"}
           </button>
         </div>
       </form>
@@ -436,12 +478,26 @@ export function Logger() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => { remove(l.id); toast.success("Registro excluído"); }}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => startEdit(l)}
+                            title="Editar registro"
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <Pencil className="size-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (editingId === l.id) resetForm();
+                              remove(l.id);
+                              toast.success("Registro excluído");
+                            }}
+                            title="Excluir registro"
+                            className="text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
