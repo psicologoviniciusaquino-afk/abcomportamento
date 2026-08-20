@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   childSchema,
   abcLogSchema,
+  abcLogUpdateSchema,
   faSessionSchema,
   idSchema,
   optionalChildIdSchema,
@@ -32,6 +33,11 @@ export const createLogFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => abcLogSchema.parse(data))
   .handler(async ({ data, context }) => aba.createLog(context.supabase, context.userId, data));
+
+export const updateLogFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => abcLogUpdateSchema.parse(data))
+  .handler(async ({ data, context }) => aba.updateLog(context.supabase, context.userId, data));
 
 export const deleteLogFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

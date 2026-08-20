@@ -7,6 +7,7 @@ import {
   deleteChildFn,
   listLogsFn,
   createLogFn,
+  updateLogFn,
   deleteLogFn,
   listSessionsFn,
   createSessionFn,
@@ -100,6 +101,12 @@ export function useLogs(childId?: string | null) {
   const queryClient = useQueryClient();
   const create = useServerFn(createLogFn);
   const remove = useServerFn(deleteLogFn);
+  const update = useServerFn(updateLogFn);
+
+  const updateMutation = useMutation({
+    mutationFn: (log: Omit<ABCLog, "owner_id" | "hypothesizedFunction" | "created_at">) => update({ data: log }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["abc_logs"] }),
+  });
 
   const addMutation = useMutation({
     mutationFn: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) =>
@@ -116,6 +123,7 @@ export function useLogs(childId?: string | null) {
     logs: data as ABCLog[],
     isLoading,
     add: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) => addMutation.mutate(log),
+    update: (log: Omit<ABCLog, "owner_id" | "hypothesizedFunction" | "created_at">) => updateMutation.mutate(log),
     remove: (id: string) => removeMutation.mutate(id),
   };
 }

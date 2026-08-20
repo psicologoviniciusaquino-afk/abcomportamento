@@ -117,6 +117,31 @@ export async function createLog(
   return toCamelLog(data as Record<string, unknown>);
 }
 
+export async function updateLog(
+  supabase: Client,
+  _userId: string,
+  input: Omit<ABCLog, "owner_id" | "hypothesizedFunction" | "created_at">
+): Promise<ABCLog> {
+  const allTags = [...input.antecedentTags, ...input.consequenceTags];
+  const row = {
+    child_id: input.child_id,
+    timestamp: input.timestamp,
+    phase: input.phase,
+    antecedent: input.antecedent,
+    antecedent_tags: input.antecedentTags,
+    behavior: input.behavior,
+    severity: input.severity,
+    consequence: input.consequence,
+    consequence_tags: input.consequenceTags,
+    environment_tags: input.environmentTags ?? [],
+    environment_notes: input.environmentNotes,
+    hypothesized_function: inferFunctionFromTags(allTags),
+  };
+  const { data, error } = await supabase.from("abc_logs").update(row).eq("id", input.id).select().single();
+  if (error) throw error;
+  return toCamelLog(data as Record<string, unknown>);
+}
+
 export async function deleteLog(supabase: Client, _userId: string, id: string): Promise<void> {
   const { error } = await supabase.from("abc_logs").delete().eq("id", id);
   if (error) throw error;
