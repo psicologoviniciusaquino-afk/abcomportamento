@@ -206,6 +206,26 @@ export function Dashboard({ logs, sessions }: { logs: ABCLog[]; sessions: FASess
 
 const PIE_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
+function PieLegend({ data }: { data: { name: string; value: number }[] }) {
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  return (
+    <ul className="mt-4 flex flex-col gap-1.5">
+      {data.map((d, i) => (
+        <li key={d.name} className="flex items-center gap-2 text-xs min-w-0">
+          <span
+            className="size-2.5 shrink-0 rounded-full"
+            style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
+          />
+          <span className="truncate min-w-0 flex-1" title={d.name}>{d.name}</span>
+          <span className="shrink-0 text-muted-foreground tabular-nums">
+            {d.value} • {Math.round((d.value / total) * 100)}%
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function FunctionPie({ logs }: { logs: ABCLog[] }) {
   const counts: Record<string, number> = {};
   logs.forEach((l) => {
@@ -226,30 +246,30 @@ function FunctionPie({ logs }: { logs: ABCLog[] }) {
       {data.length === 0 ? (
         <p className="text-sm text-muted-foreground">Registre ocorrências para visualizar a distribuição das funções.</p>
       ) : (
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={50}
-                outerRadius={95}
-                paddingAngle={2}
-                label={(e: { name?: string; percent?: number }) => `${e.name}: ${Math.round((e.percent ?? 0) * 100)}%`}
-                labelLine={false}
-              >
-                {data.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
-              />
-              <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <>
+          <div className="h-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={48}
+                  outerRadius={88}
+                  paddingAngle={2}
+                >
+                  {data.map((_, i) => (
+                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <PieLegend data={data} />
+        </>
       )}
     </div>
   );
