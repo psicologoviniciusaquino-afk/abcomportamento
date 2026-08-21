@@ -80,6 +80,8 @@ export const CON_ICONS: Record<string, string> = {
   "Retirada da atenção": "🙈",
   "Retirada do objeto preferido": "📤",
   "Nenhuma consequência social visível": "🤷",
+  "Redirecionamento": "🧭",
+  "Modelagem de mando": "🗨️",
 };
 
 export const ANT_ICONS: Record<string, string> = {
