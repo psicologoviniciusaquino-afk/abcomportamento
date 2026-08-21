@@ -49,6 +49,8 @@ const CONSEQUENCIAS = [
   { emoji: "🙈", label: "Retirada da atenção", tag: "Retirada da atenção" },
   { emoji: "📤", label: "Retirada do objeto preferido", tag: "Retirada do objeto preferido" },
   { emoji: "🤷", label: "Ignorado", tag: "Nenhuma consequência social visível" },
+  { emoji: "🧭", label: "Redirecionamento", tag: "Redirecionamento" },
+  { emoji: "🗨️", label: "Modelagem de mando", tag: "Modelagem de mando" },
 ];
 
 type Phase = "baseline" | "intervention";

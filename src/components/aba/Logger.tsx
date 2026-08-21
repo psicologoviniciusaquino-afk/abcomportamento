@@ -58,6 +58,12 @@ const CON_GROUPS: TagGroup[] = [
     tone: "var(--chart-3)",
     tags: ["Nenhuma consequência social visível"],
   },
+  {
+    category: "Manejo / Intervenção",
+    hint: "Respostas do terapeuta",
+    tone: "var(--chart-1)",
+    tags: ["Redirecionamento", "Modelagem de mando"],
+  },
 ];
 
 
@@ -74,6 +80,8 @@ export const CON_ICONS: Record<string, string> = {
   "Retirada da atenção": "🙈",
   "Retirada do objeto preferido": "📤",
   "Nenhuma consequência social visível": "🤷",
+  "Redirecionamento": "🧭",
+  "Modelagem de mando": "🗨️",
 };
 
 export const ANT_ICONS: Record<string, string> = {
