@@ -3,7 +3,7 @@ import { Activity, Target, HelpCircle, TrendingUp, FileDown, CalendarClock, Ligh
 import { useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
-  ScatterChart, Scatter, ZAxis, PieChart, Pie, Cell, Legend,
+  ScatterChart, Scatter, ZAxis, PieChart, Pie, Cell,
 } from "recharts";
 import { exportPdf } from "@/lib/aba-pdf";
 import { usePdfHistory } from "@/lib/pdf-history";
