@@ -294,30 +294,30 @@ function BehaviorPie({ logs }: { logs: ABCLog[] }) {
       {data.length === 0 ? (
         <p className="text-sm text-muted-foreground">Registre ocorrências para visualizar a distribuição dos comportamentos.</p>
       ) : (
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={50}
-                outerRadius={95}
-                paddingAngle={2}
-                label={(e: { name?: string; percent?: number }) => `${e.name}: ${Math.round((e.percent ?? 0) * 100)}%`}
-                labelLine={false}
-              >
-                {data.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
-              />
-              <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: 12 }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <>
+          <div className="h-60">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={48}
+                  outerRadius={88}
+                  paddingAngle={2}
+                >
+                  {data.map((_, i) => (
+                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <PieLegend data={data} />
+        </>
       )}
     </div>
   );
