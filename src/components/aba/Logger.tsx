@@ -58,6 +58,12 @@ const CON_GROUPS: TagGroup[] = [
     tone: "var(--chart-3)",
     tags: ["Nenhuma consequência social visível"],
   },
+  {
+    category: "Manejo / Intervenção",
+    hint: "Respostas do terapeuta",
+    tone: "var(--chart-1)",
+    tags: ["Redirecionamento", "Modelagem de mando"],
+  },
 ];
 
 
