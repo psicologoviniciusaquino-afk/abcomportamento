@@ -459,7 +459,7 @@ export function QuickLogger() {
           )}
         >
           <Check className="size-5" />
-          Registrar Ocorrência
+          Registrar comportamento
         </button>
       </div>
 
