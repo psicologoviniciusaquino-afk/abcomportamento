@@ -84,11 +84,6 @@ export function QuickLogger() {
     { emoji: "✏️", label: "Especificar" },
   ];
 
-  // Session timer state
-  const [remaining, setRemaining] = useState(SESSION_SECONDS);
-  const [running, setRunning] = useState(false);
-  const endedRef = useRef(false);
-
   useEffect(() => {
     if (!childId && children[0]) setChildId(children[0].id);
   }, [children, childId]);
@@ -121,41 +116,6 @@ export function QuickLogger() {
     toast.success("Paciente adicionado", { description: name });
   };
 
-  useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(id);
-          setRunning(false);
-          if (!endedRef.current) {
-            endedRef.current = true;
-            toast.success("Sessão de 50 min concluída", { description: "Tempo encerrado." });
-            try {
-              const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-              const o = ctx.createOscillator(); const g = ctx.createGain();
-              o.connect(g); g.connect(ctx.destination);
-              o.frequency.value = 880; g.gain.value = 0.1;
-              o.start(); setTimeout(() => { o.stop(); ctx.close(); }, 400);
-            } catch {}
-          }
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [running]);
-
-  const startTimer = () => {
-    if (remaining === 0) { setRemaining(SESSION_SECONDS); endedRef.current = false; }
-    setRunning(true);
-  };
-  const pauseTimer = () => setRunning(false);
-  const resetTimer = () => { setRunning(false); setRemaining(SESSION_SECONDS); endedRef.current = false; };
-  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
-  const ss = String(remaining % 60).padStart(2, "0");
-  const pct = ((SESSION_SECONDS - remaining) / SESSION_SECONDS) * 100;
 
   const resetForm = () => {
     setAnt(null); setBeh(null); setCon(null);
