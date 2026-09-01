@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { inferFunctionFromTags, useLogs, useChildren, useCustomActivities, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Check, Zap, Play, Pause, RotateCcw, Timer, Activity } from "lucide-react";
-
-const SESSION_MINUTES = 50;
-const SESSION_SECONDS = SESSION_MINUTES * 60;
+import { Check, Zap, Activity } from "lucide-react";
 
 const ANTECEDENTES = [
   { emoji: "📋", label: "Instrução/demanda", tag: "Instrução/demanda" },
@@ -87,11 +84,6 @@ export function QuickLogger() {
     { emoji: "✏️", label: "Especificar" },
   ];
 
-  // Session timer state
-  const [remaining, setRemaining] = useState(SESSION_SECONDS);
-  const [running, setRunning] = useState(false);
-  const endedRef = useRef(false);
-
   useEffect(() => {
     if (!childId && children[0]) setChildId(children[0].id);
   }, [children, childId]);
@@ -124,41 +116,6 @@ export function QuickLogger() {
     toast.success("Paciente adicionado", { description: name });
   };
 
-  useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(id);
-          setRunning(false);
-          if (!endedRef.current) {
-            endedRef.current = true;
-            toast.success("Sessão de 50 min concluída", { description: "Tempo encerrado." });
-            try {
-              const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-              const o = ctx.createOscillator(); const g = ctx.createGain();
-              o.connect(g); g.connect(ctx.destination);
-              o.frequency.value = 880; g.gain.value = 0.1;
-              o.start(); setTimeout(() => { o.stop(); ctx.close(); }, 400);
-            } catch {}
-          }
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [running]);
-
-  const startTimer = () => {
-    if (remaining === 0) { setRemaining(SESSION_SECONDS); endedRef.current = false; }
-    setRunning(true);
-  };
-  const pauseTimer = () => setRunning(false);
-  const resetTimer = () => { setRunning(false); setRemaining(SESSION_SECONDS); endedRef.current = false; };
-  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
-  const ss = String(remaining % 60).padStart(2, "0");
-  const pct = ((SESSION_SECONDS - remaining) / SESSION_SECONDS) * 100;
 
   const resetForm = () => {
     setAnt(null); setBeh(null); setCon(null);
@@ -251,34 +208,7 @@ export function QuickLogger() {
           )}
         </div>
 
-        {/* Timer */}
-        <div className="rounded-xl border border-border bg-background p-2.5 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                <Timer className="size-4" />
-              </div>
-              <div className="text-2xl font-semibold tabular-nums">{mm}:{ss}</div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {!running ? (
-                <button type="button" onClick={startTimer} className="inline-flex items-center gap-1 rounded-lg bg-primary text-primary-foreground px-2.5 py-1.5 text-xs font-semibold">
-                  <Play className="size-3.5" /> {remaining === SESSION_SECONDS ? "Iniciar" : "Retomar"}
-                </button>
-              ) : (
-                <button type="button" onClick={pauseTimer} className="inline-flex items-center gap-1 rounded-lg bg-secondary text-secondary-foreground border border-border px-2.5 py-1.5 text-xs font-semibold">
-                  <Pause className="size-3.5" /> Pausar
-                </button>
-              )}
-              <button type="button" onClick={resetTimer} className="inline-flex items-center gap-1 rounded-lg bg-secondary text-secondary-foreground border border-border px-2.5 py-1.5 text-xs font-semibold">
-                <RotateCcw className="size-3.5" />
-              </button>
-            </div>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
+
 
         {/* Atividade em execução (colapsível) */}
         <div className="rounded-xl border border-border bg-background">
