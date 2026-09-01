@@ -15,16 +15,28 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [hashChecked, setHashChecked] = useState(false);
+  const [validLink, setValidLink] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash.includes("type=recovery")) {
-      toast.error("Link de recuperação inválido.");
-    }
-    setHashChecked(true);
+    const check = () => {
+      const hash = window.location.hash;
+      const ok = hash.includes("type=recovery");
+      setValidLink(ok);
+      if (!ok) toast.error("Link de recuperação inválido ou expirado.");
+      setHashChecked(true);
+    };
+    check();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setValidLink(true);
+        setHashChecked(true);
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,7 +47,7 @@ function ResetPasswordPage() {
       toast.error(error.message);
     } else {
       toast.success("Senha atualizada com sucesso!");
-      throw redirect({ to: "/dashboard" });
+      navigate({ to: "/dashboard", replace: true });
     }
     setLoading(false);
   };
