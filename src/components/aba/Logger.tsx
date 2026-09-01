@@ -82,6 +82,9 @@ export const CON_ICONS: Record<string, string> = {
   "Nenhuma consequência social visível": "🤷",
   "Redirecionamento": "🧭",
   "Modelagem de mando": "🗨️",
+  "Bloqueio físico": "✋",
+  "Evasão (saída/fuga do contexto)": "🏃",
+  "Retirada de objetos tangíveis": "🚫",
 };
 
 export const ANT_ICONS: Record<string, string> = {
