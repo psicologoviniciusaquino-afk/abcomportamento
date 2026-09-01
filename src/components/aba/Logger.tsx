@@ -44,13 +44,13 @@ const CON_GROUPS: TagGroup[] = [
     category: "Reforço Negativo (Fuga/Esquiva)",
     hint: "→ Função Fuga",
     tone: "var(--chart-2)",
-    tags: ["Retirada da tarefa", "Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente"],
+    tags: ["Retirada da tarefa", "Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente", "Evasão (saída/fuga do contexto)"],
   },
   {
     category: "Retirada de Reforçador (Punição/Extinção)",
     hint: "Consequências que removem reforçadores",
     tone: "var(--chart-5)",
-    tags: ["Retirada da atenção", "Retirada do objeto preferido"],
+    tags: ["Retirada da atenção", "Retirada do objeto preferido", "Retirada de objetos tangíveis"],
   },
   {
     category: "Reforço Automático (Sensorial)",
@@ -62,7 +62,7 @@ const CON_GROUPS: TagGroup[] = [
     category: "Manejo / Intervenção",
     hint: "Respostas do terapeuta",
     tone: "var(--chart-1)",
-    tags: ["Redirecionamento", "Modelagem de mando"],
+    tags: ["Redirecionamento", "Modelagem de mando", "Bloqueio físico"],
   },
 ];
 
