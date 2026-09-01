@@ -70,16 +70,23 @@ function AuthPage() {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
-            <button
-              onClick={() => setMode("signin")}
-              className={`py-2 rounded-lg text-sm font-semibold transition-all ${mode === "signin" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}
-            >Entrar</button>
-            <button
-              onClick={() => setMode("signup")}
-              className={`py-2 rounded-lg text-sm font-semibold transition-all ${mode === "signup" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"}`}
-            >Criar conta</button>
-          </div>
+          {mode === "forgot" ? (
+            <div className="space-y-1 text-center">
+              <h2 className="text-lg font-semibold">Recuperar senha</h2>
+              <p className="text-sm text-muted-foreground">Informe seu e-mail para receber o link de recuperação.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
+              <button
+                onClick={() => setMode("signin")}
+                className={`py-2 rounded-lg text-sm font-semibold transition-all ${mode === "signin" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}
+              >Entrar</button>
+              <button
+                onClick={() => setMode("signup")}
+                className={`py-2 rounded-lg text-sm font-semibold transition-all ${mode === "signup" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"}`}
+              >Criar conta</button>
+            </div>
+          )}
 
           <form onSubmit={handleEmail} className="space-y-3">
             <div className="relative">
@@ -93,26 +100,44 @@ function AuthPage() {
                 className="w-full pl-10 pr-3 py-2.5 bg-background border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Senha"
-                className="w-full pl-10 pr-3 py-2.5 bg-background border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
+            {mode !== "forgot" && (
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Senha"
+                  className="w-full pl-10 pr-3 py-2.5 bg-background border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}
               className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-60"
             >
-              {mode === "signin" ? "Entrar" : "Criar conta"} <ArrowRight className="size-4" />
+              {mode === "signin" ? "Entrar" : mode === "signup" ? "Criar conta" : "Enviar link de recuperação"} <ArrowRight className="size-4" />
             </button>
           </form>
+
+          {mode === "signin" ? (
+            <button
+              onClick={() => setMode("forgot")}
+              className="w-full text-center text-xs text-primary hover:underline"
+            >
+              Esqueci minha senha
+            </button>
+          ) : (
+            <button
+              onClick={() => setMode("signin")}
+              className="w-full text-center text-xs text-primary hover:underline"
+            >
+              Voltar para o login
+            </button>
+          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
