@@ -208,34 +208,7 @@ export function QuickLogger() {
           )}
         </div>
 
-        {/* Timer */}
-        <div className="rounded-xl border border-border bg-background p-2.5 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                <Timer className="size-4" />
-              </div>
-              <div className="text-2xl font-semibold tabular-nums">{mm}:{ss}</div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {!running ? (
-                <button type="button" onClick={startTimer} className="inline-flex items-center gap-1 rounded-lg bg-primary text-primary-foreground px-2.5 py-1.5 text-xs font-semibold">
-                  <Play className="size-3.5" /> {remaining === SESSION_SECONDS ? "Iniciar" : "Retomar"}
-                </button>
-              ) : (
-                <button type="button" onClick={pauseTimer} className="inline-flex items-center gap-1 rounded-lg bg-secondary text-secondary-foreground border border-border px-2.5 py-1.5 text-xs font-semibold">
-                  <Pause className="size-3.5" /> Pausar
-                </button>
-              )}
-              <button type="button" onClick={resetTimer} className="inline-flex items-center gap-1 rounded-lg bg-secondary text-secondary-foreground border border-border px-2.5 py-1.5 text-xs font-semibold">
-                <RotateCcw className="size-3.5" />
-              </button>
-            </div>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
+
 
         {/* Atividade em execução (colapsível) */}
         <div className="rounded-xl border border-border bg-background">
