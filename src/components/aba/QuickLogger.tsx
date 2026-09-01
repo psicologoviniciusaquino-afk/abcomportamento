@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { inferFunctionFromTags, useLogs, useChildren, useCustomActivities, Child } from "@/lib/aba-store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Check, Zap, Play, Pause, RotateCcw, Timer, Activity } from "lucide-react";
-
-const SESSION_MINUTES = 50;
-const SESSION_SECONDS = SESSION_MINUTES * 60;
+import { Check, Zap, Activity } from "lucide-react";
 
 const ANTECEDENTES = [
   { emoji: "📋", label: "Instrução/demanda", tag: "Instrução/demanda" },
