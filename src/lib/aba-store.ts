@@ -196,7 +196,7 @@ export function computeHypothesis(logs: ABCLog[]): FunctionType | "Pendente" {
 
 export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente" {
   const t = tags.map((x) => x.toLowerCase()).join(" | ");
-  if (/(retirada da tarefa|pausa|redução da exigência|retirada do ambiente|demanda removida)/.test(t)) return "Fuga";
+  if (/(retirada da tarefa|pausa|redução da exigência|retirada do ambiente|demanda removida|evasão|fuga)/.test(t)) return "Fuga";
   if (/(atenção social|atenção verbal|contato físico|proximidade|atenção dada|retirada da atenção)/.test(t)) return "Atenção";
   if (/(acesso ao objeto|entrega do objeto|alimento|item fornecido|tangível|retirada do objeto)/.test(t)) return "Tangível";
   if (/(nenhuma consequência|ignorado|sozinho|sem estímulos|excesso de estímulos|desconforto)/.test(t)) return "Sensorial";
