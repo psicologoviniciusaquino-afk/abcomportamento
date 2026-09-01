@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,16 +15,28 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [hashChecked, setHashChecked] = useState(false);
+  const [validLink, setValidLink] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash.includes("type=recovery")) {
-      toast.error("Link de recuperação inválido.");
-    }
-    setHashChecked(true);
+    const check = () => {
+      const hash = window.location.hash;
+      const ok = hash.includes("type=recovery");
+      setValidLink(ok);
+      if (!ok) toast.error("Link de recuperação inválido ou expirado.");
+      setHashChecked(true);
+    };
+    check();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setValidLink(true);
+        setHashChecked(true);
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,7 +47,7 @@ function ResetPasswordPage() {
       toast.error(error.message);
     } else {
       toast.success("Senha atualizada com sucesso!");
-      throw redirect({ to: "/dashboard" });
+      navigate({ to: "/dashboard", replace: true });
     }
     setLoading(false);
   };
@@ -45,7 +57,12 @@ function ResetPasswordPage() {
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
         <h1 className="text-xl font-semibold tracking-tight">Redefinir senha</h1>
         <p className="text-sm text-muted-foreground">Digite sua nova senha de acesso.</p>
-        {hashChecked && (
+        {hashChecked && !validLink && (
+          <p className="text-sm text-destructive">
+            Solicite um novo link de recuperação na tela de login.
+          </p>
+        )}
+        {hashChecked && validLink && (
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
