@@ -57,7 +57,12 @@ function ResetPasswordPage() {
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
         <h1 className="text-xl font-semibold tracking-tight">Redefinir senha</h1>
         <p className="text-sm text-muted-foreground">Digite sua nova senha de acesso.</p>
-        {hashChecked && (
+        {hashChecked && !validLink && (
+          <p className="text-sm text-destructive">
+            Solicite um novo link de recuperação na tela de login.
+          </p>
+        )}
+        {hashChecked && validLink && (
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
