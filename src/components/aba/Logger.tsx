@@ -176,15 +176,19 @@ export function Logger() {
   const toggle = (arr: string[], setArr: (v: string[]) => void, tag: string) =>
     setArr(arr.includes(tag) ? arr.filter((x) => x !== tag) : [...arr, tag]);
 
-  const handleAddChild = () => {
+  const handleAddChild = async () => {
     const n = newChild.trim();
     if (!n) return;
-    addFull({ name: n });
-    toast.success("Paciente adicionado");
-    setNewChild("");
+    try {
+      await addFull({ name: n });
+      toast.success("Paciente adicionado");
+      setNewChild("");
+    } catch {
+      // erro já exibido pelo hook
+    }
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!behavior.trim()) {
       toast.error("Descreva o comportamento.");
@@ -203,15 +207,20 @@ export function Logger() {
       environmentTags: envTags,
       environmentNotes: envNotes || null,
     };
-    if (editingId) {
-      update({ id: editingId, ...payload });
-      toast.success("Registro atualizado");
-    } else {
-      add(payload);
-      toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
+    try {
+      if (editingId) {
+        await update({ id: editingId, ...payload });
+        toast.success("Registro atualizado");
+      } else {
+        await add(payload);
+        toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
+      }
+      resetForm();
+    } catch {
+      // erro já exibido pelo hook
     }
-    resetForm();
   };
+
 
   const resetForm = () => {
     setEditingId(null);
