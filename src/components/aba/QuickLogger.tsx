@@ -109,15 +109,21 @@ export function QuickLogger() {
     }
   }, [children, pendingChildName]);
 
-  const saveNewChild = () => {
+  const saveNewChild = async () => {
     const name = newChildName.trim();
     if (!name) return;
-    addChild(name);
-    setPendingChildName(name);
-    setNewChildName("");
-    setShowNewChild(false);
-    toast.success("Paciente adicionado", { description: name });
+    try {
+      const created = await addChild(name);
+      setNewChildName("");
+      setShowNewChild(false);
+      if (created?.id) setChildId(created.id);
+      else setPendingChildName(name);
+      toast.success("Paciente adicionado", { description: name });
+    } catch {
+      // erro já exibido pelo hook; mantém o texto digitado para nova tentativa
+    }
   };
+
 
 
   const resetForm = () => {
