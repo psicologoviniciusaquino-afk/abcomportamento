@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { ABCLog, Child, FASession } from "./aba-store";
 import { inferFunctionFromTags } from "./aba-store";
+import { throwDbError } from "./aba-errors";
 
 type Client = SupabaseClient<Database>;
 
@@ -57,7 +58,7 @@ export async function listChildren(supabase: Client, userId: string): Promise<Ch
     .select("*")
     .eq("owner_id", userId)
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) throwDbError(error, "listar pacientes");
   return (data || []).map((r) => toCamelChild(r as Record<string, unknown>));
 }
 
@@ -71,13 +72,13 @@ export async function createChild(
     .insert({ owner_id: userId, ...input })
     .select()
     .single();
-  if (error) throw error;
+  if (error) throwDbError(error, "cadastrar paciente");
   return toCamelChild(data as Record<string, unknown>);
 }
 
 export async function deleteChild(supabase: Client, _userId: string, id: string): Promise<void> {
   const { error } = await supabase.from("children").delete().eq("id", id);
-  if (error) throw error;
+  if (error) throwDbError(error, "excluir paciente");
 }
 
 // ABC Logs
@@ -86,7 +87,7 @@ export async function listLogs(supabase: Client, userId: string, childId?: strin
   let q = supabase.from("abc_logs").select("*").eq("owner_id", userId).order("timestamp", { ascending: false });
   if (childId) q = q.eq("child_id", childId);
   const { data, error } = await q;
-  if (error) throw error;
+  if (error) throwDbError(error, "listar registros");
   return (data || []).map((r) => toCamelLog(r as Record<string, unknown>));
 }
 
@@ -113,7 +114,7 @@ export async function createLog(
     hypothesized_function: hypothesizedFunction,
   };
   const { data, error } = await supabase.from("abc_logs").insert(row).select().single();
-  if (error) throw error;
+  if (error) throwDbError(error, "salvar registro");
   return toCamelLog(data as Record<string, unknown>);
 }
 
@@ -138,13 +139,13 @@ export async function updateLog(
     hypothesized_function: inferFunctionFromTags(allTags),
   };
   const { data, error } = await supabase.from("abc_logs").update(row).eq("id", input.id).select().single();
-  if (error) throw error;
+  if (error) throwDbError(error, "atualizar registro");
   return toCamelLog(data as Record<string, unknown>);
 }
 
 export async function deleteLog(supabase: Client, _userId: string, id: string): Promise<void> {
   const { error } = await supabase.from("abc_logs").delete().eq("id", id);
-  if (error) throw error;
+  if (error) throwDbError(error, "excluir registro");
 }
 
 // FA Sessions
@@ -153,7 +154,7 @@ export async function listSessions(supabase: Client, userId: string, childId?: s
   let q = supabase.from("fa_sessions").select("*").eq("owner_id", userId).order("created_at", { ascending: false });
   if (childId) q = q.eq("child_id", childId);
   const { data, error } = await q;
-  if (error) throw error;
+  if (error) throwDbError(error, "listar sessões");
   return (data || []).map((r) => toCamelSession(r as Record<string, unknown>));
 }
 
@@ -170,7 +171,7 @@ export async function createSession(
     frequency: input.frequency,
   };
   const { data, error } = await supabase.from("fa_sessions").insert(row).select().single();
-  if (error) throw error;
+  if (error) throwDbError(error, "salvar sessão");
   return toCamelSession(data as Record<string, unknown>);
 }
 
@@ -178,5 +179,5 @@ export async function clearSessions(supabase: Client, userId: string, childId?: 
   let q = supabase.from("fa_sessions").delete().eq("owner_id", userId);
   if (childId) q = q.eq("child_id", childId);
   const { error } = await q;
-  if (error) throw error;
+  if (error) throwDbError(error, "limpar sessões");
 }
