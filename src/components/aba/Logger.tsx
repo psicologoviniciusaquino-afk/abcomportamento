@@ -507,10 +507,13 @@ export function Logger() {
                             <Pencil className="size-4" />
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (editingId === l.id) resetForm();
-                              remove(l.id);
-                              toast.success("Registro excluído");
+                              try {
+                                await remove(l.id);
+                                toast.success("Registro excluído");
+                              } catch { /* erro exibido pelo hook */ }
+
                             }}
                             title="Excluir registro"
                             className="text-muted-foreground hover:text-destructive transition-colors"
