@@ -154,7 +154,7 @@ const SEVERITY_LEVELS: { value: number; label: string; icon: string; tone: strin
 
 export function Logger() {
   const { logs, add, update, remove, isLoading: logsLoading } = useLogs();
-  const { children, addFull, remove: removeChild, isLoading: childrenLoading } = useChildren();
+  const { children, addFull, remove: removeChild, isLoading: childrenLoading, error: childrenError, refetch: refetchChildren } = useChildren();
   const [timestamp, setTimestamp] = useState(() => new Date().toISOString().slice(0, 16));
   const [childId, setChildId] = useState<string>("");
   const [newChild, setNewChild] = useState("");
@@ -176,15 +176,19 @@ export function Logger() {
   const toggle = (arr: string[], setArr: (v: string[]) => void, tag: string) =>
     setArr(arr.includes(tag) ? arr.filter((x) => x !== tag) : [...arr, tag]);
 
-  const handleAddChild = () => {
+  const handleAddChild = async () => {
     const n = newChild.trim();
     if (!n) return;
-    addFull({ name: n });
-    toast.success("Paciente adicionado");
-    setNewChild("");
+    try {
+      await addFull({ name: n });
+      toast.success("Paciente adicionado");
+      setNewChild("");
+    } catch {
+      // erro já exibido pelo hook
+    }
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!behavior.trim()) {
       toast.error("Descreva o comportamento.");
@@ -203,15 +207,20 @@ export function Logger() {
       environmentTags: envTags,
       environmentNotes: envNotes || null,
     };
-    if (editingId) {
-      update({ id: editingId, ...payload });
-      toast.success("Registro atualizado");
-    } else {
-      add(payload);
-      toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
+    try {
+      if (editingId) {
+        await update({ id: editingId, ...payload });
+        toast.success("Registro atualizado");
+      } else {
+        await add(payload);
+        toast.success("Registro salvo", { description: `Hipótese: ${inferFunctionFromTags([...antTags, ...conTags])}` });
+      }
+      resetForm();
+    } catch {
+      // erro já exibido pelo hook
     }
-    resetForm();
   };
+
 
   const resetForm = () => {
     setEditingId(null);
@@ -282,6 +291,15 @@ export function Logger() {
                 </button>
               )}
             </div>
+            {childrenError && (
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <span>Não foi possível carregar os pacientes.</span>
+                <button type="button" onClick={() => refetchChildren()} className="font-semibold underline">
+                  Tentar novamente
+                </button>
+              </div>
+            )}
+
             <div className="flex gap-2 mt-2">
               <input
                 value={newChild}
@@ -498,10 +516,13 @@ export function Logger() {
                             <Pencil className="size-4" />
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (editingId === l.id) resetForm();
-                              remove(l.id);
-                              toast.success("Registro excluído");
+                              try {
+                                await remove(l.id);
+                                toast.success("Registro excluído");
+                              } catch { /* erro exibido pelo hook */ }
+
                             }}
                             title="Excluir registro"
                             className="text-muted-foreground hover:text-destructive transition-colors"

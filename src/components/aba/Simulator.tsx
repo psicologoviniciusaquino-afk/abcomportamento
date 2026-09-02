@@ -24,14 +24,19 @@ export function Simulator() {
   const childMap = new Map(children.map((c) => [c.id, c] as const));
   const selectedChild = childMap.get(childId);
 
-  const run = () => {
-    add({
-      child_id: childId || null,
-      condition,
-      durationMin: duration,
-      frequency,
-    });
+  const run = async () => {
+    try {
+      await add({
+        child_id: childId || null,
+        condition,
+        durationMin: duration,
+        frequency,
+      });
+    } catch {
+      return; // erro já exibido pelo hook
+    }
     const label = CONDITIONS.find((c) => c.key === condition)?.label;
+
     toast.success(`Sessão de ${label} registrada`, {
       description: `Taxa: ${(frequency / duration).toFixed(2)} respostas/min`,
     });
@@ -149,7 +154,7 @@ export function Simulator() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Taxa de Respostas por Condição</h2>
             {sessions.length > 0 && (
-              <button onClick={() => { clear(); toast.success("Sessões removidas"); }}
+              <button onClick={async () => { try { await clear(); toast.success("Sessões removidas"); } catch { /* erro exibido pelo hook */ } }}
                 className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1">
                 <Trash2 className="size-3" /> Limpar
               </button>

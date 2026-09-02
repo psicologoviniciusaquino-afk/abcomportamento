@@ -58,7 +58,7 @@ type Step = 0 | 1 | 2;
 
 export function QuickLogger() {
   const { add } = useLogs();
-  const { children, isLoading: childrenLoading, add: addChild } = useChildren();
+  const { children, isLoading: childrenLoading, add: addChild, error: childrenError, refetch: refetchChildren } = useChildren();
   const { activities: savedActivities, add: addSavedActivity, remove: removeSavedActivity } = useCustomActivities();
   const [showNewChild, setShowNewChild] = useState(false);
   const [newChildName, setNewChildName] = useState("");
@@ -109,15 +109,21 @@ export function QuickLogger() {
     }
   }, [children, pendingChildName]);
 
-  const saveNewChild = () => {
+  const saveNewChild = async () => {
     const name = newChildName.trim();
     if (!name) return;
-    addChild(name);
-    setPendingChildName(name);
-    setNewChildName("");
-    setShowNewChild(false);
-    toast.success("Paciente adicionado", { description: name });
+    try {
+      const created = await addChild(name);
+      setNewChildName("");
+      setShowNewChild(false);
+      if (created?.id) setChildId(created.id);
+      else setPendingChildName(name);
+      toast.success("Paciente adicionado", { description: name });
+    } catch {
+      // erro já exibido pelo hook; mantém o texto digitado para nova tentativa
+    }
   };
+
 
 
   const resetForm = () => {
@@ -136,30 +142,35 @@ export function QuickLogger() {
 
   const ready = ant && beh && con && (beh.label !== "Outro" || customBeh.trim().length > 0);
 
-  const save = () => {
+  const save = async () => {
     if (!ready || !ant || !beh || !con) return;
     const behaviorLabel = beh.label === "Outro" ? customBeh.trim() : beh.label;
     const allTags = [ant.tag, con.tag];
     const activityLabel =
       activity === "__custom" ? customActivity.trim() : activity;
-    add({
-      child_id: childId || null,
-      timestamp: new Date().toISOString(),
-      phase,
-      antecedent: ant.label,
-      antecedentTags: [ant.tag],
-      behavior: behaviorLabel,
-      severity: 3,
-      consequence: con.label,
-      consequenceTags: [con.tag],
-      environmentTags: activityLabel ? [`Atividade: ${activityLabel}`] : [],
-      environmentNotes: null,
-    });
+    try {
+      await add({
+        child_id: childId || null,
+        timestamp: new Date().toISOString(),
+        phase,
+        antecedent: ant.label,
+        antecedentTags: [ant.tag],
+        behavior: behaviorLabel,
+        severity: 3,
+        consequence: con.label,
+        consequenceTags: [con.tag],
+        environmentTags: activityLabel ? [`Atividade: ${activityLabel}`] : [],
+        environmentNotes: null,
+      });
+    } catch {
+      return; // erro já exibido pelo hook
+    }
     setFlash(true);
     setTimeout(() => setFlash(false), 350);
     toast.success("Ocorrência registrada", { description: `Função: ${inferFunctionFromTags(allTags)}` });
     resetForm();
   };
+
 
   const childMap = new Map(children.map((c) => [c.id, c] as const));
 
@@ -191,7 +202,16 @@ export function QuickLogger() {
               {showNewChild ? "×" : "+ Novo"}
             </button>
           </div>
-          {(showNewChild || (!childrenLoading && children.length === 0)) && (
+          {childrenError && (
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              <span>Não foi possível carregar os pacientes.</span>
+              <button type="button" onClick={() => refetchChildren()} className="font-semibold underline">
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          {(showNewChild || (!childrenLoading && !childrenError && children.length === 0)) && (
+
             <div className="flex gap-2">
               <input
                 ref={newChildRef}
