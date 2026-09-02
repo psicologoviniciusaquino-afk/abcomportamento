@@ -136,30 +136,35 @@ export function QuickLogger() {
 
   const ready = ant && beh && con && (beh.label !== "Outro" || customBeh.trim().length > 0);
 
-  const save = () => {
+  const save = async () => {
     if (!ready || !ant || !beh || !con) return;
     const behaviorLabel = beh.label === "Outro" ? customBeh.trim() : beh.label;
     const allTags = [ant.tag, con.tag];
     const activityLabel =
       activity === "__custom" ? customActivity.trim() : activity;
-    add({
-      child_id: childId || null,
-      timestamp: new Date().toISOString(),
-      phase,
-      antecedent: ant.label,
-      antecedentTags: [ant.tag],
-      behavior: behaviorLabel,
-      severity: 3,
-      consequence: con.label,
-      consequenceTags: [con.tag],
-      environmentTags: activityLabel ? [`Atividade: ${activityLabel}`] : [],
-      environmentNotes: null,
-    });
+    try {
+      await add({
+        child_id: childId || null,
+        timestamp: new Date().toISOString(),
+        phase,
+        antecedent: ant.label,
+        antecedentTags: [ant.tag],
+        behavior: behaviorLabel,
+        severity: 3,
+        consequence: con.label,
+        consequenceTags: [con.tag],
+        environmentTags: activityLabel ? [`Atividade: ${activityLabel}`] : [],
+        environmentNotes: null,
+      });
+    } catch {
+      return; // erro já exibido pelo hook
+    }
     setFlash(true);
     setTimeout(() => setFlash(false), 350);
     toast.success("Ocorrência registrada", { description: `Função: ${inferFunctionFromTags(allTags)}` });
     resetForm();
   };
+
 
   const childMap = new Map(children.map((c) => [c.id, c] as const));
 
