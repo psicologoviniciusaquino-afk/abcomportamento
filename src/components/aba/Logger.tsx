@@ -291,6 +291,15 @@ export function Logger() {
                 </button>
               )}
             </div>
+            {childrenError && (
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <span>Não foi possível carregar os pacientes.</span>
+                <button type="button" onClick={() => refetchChildren()} className="font-semibold underline">
+                  Tentar novamente
+                </button>
+              </div>
+            )}
+
             <div className="flex gap-2 mt-2">
               <input
                 value={newChild}
