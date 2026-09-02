@@ -24,14 +24,19 @@ export function Simulator() {
   const childMap = new Map(children.map((c) => [c.id, c] as const));
   const selectedChild = childMap.get(childId);
 
-  const run = () => {
-    add({
-      child_id: childId || null,
-      condition,
-      durationMin: duration,
-      frequency,
-    });
+  const run = async () => {
+    try {
+      await add({
+        child_id: childId || null,
+        condition,
+        durationMin: duration,
+        frequency,
+      });
+    } catch {
+      return; // erro já exibido pelo hook
+    }
     const label = CONDITIONS.find((c) => c.key === condition)?.label;
+
     toast.success(`Sessão de ${label} registrada`, {
       description: `Taxa: ${(frequency / duration).toFixed(2)} respostas/min`,
     });
