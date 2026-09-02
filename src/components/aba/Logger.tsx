@@ -154,7 +154,7 @@ const SEVERITY_LEVELS: { value: number; label: string; icon: string; tone: strin
 
 export function Logger() {
   const { logs, add, update, remove, isLoading: logsLoading } = useLogs();
-  const { children, addFull, remove: removeChild, isLoading: childrenLoading } = useChildren();
+  const { children, addFull, remove: removeChild, isLoading: childrenLoading, error: childrenError, refetch: refetchChildren } = useChildren();
   const [timestamp, setTimestamp] = useState(() => new Date().toISOString().slice(0, 16));
   const [childId, setChildId] = useState<string>("");
   const [newChild, setNewChild] = useState("");
