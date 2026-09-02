@@ -202,7 +202,16 @@ export function QuickLogger() {
               {showNewChild ? "×" : "+ Novo"}
             </button>
           </div>
-          {(showNewChild || (!childrenLoading && children.length === 0)) && (
+          {childrenError && (
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              <span>Não foi possível carregar os pacientes.</span>
+              <button type="button" onClick={() => refetchChildren()} className="font-semibold underline">
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          {(showNewChild || (!childrenLoading && !childrenError && children.length === 0)) && (
+
             <div className="flex gap-2">
               <input
                 ref={newChildRef}
