@@ -58,7 +58,7 @@ type Step = 0 | 1 | 2;
 
 export function QuickLogger() {
   const { add } = useLogs();
-  const { children, isLoading: childrenLoading, add: addChild } = useChildren();
+  const { children, isLoading: childrenLoading, add: addChild, error: childrenError, refetch: refetchChildren } = useChildren();
   const { activities: savedActivities, add: addSavedActivity, remove: removeSavedActivity } = useCustomActivities();
   const [showNewChild, setShowNewChild] = useState(false);
   const [newChildName, setNewChildName] = useState("");
