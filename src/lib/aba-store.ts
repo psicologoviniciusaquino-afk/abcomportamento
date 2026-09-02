@@ -59,104 +59,139 @@ export interface FASession {
   createdAt: string;
 }
 
+function useErrorToast(action: string) {
+  return useCallback(
+    (error: unknown) => {
+      console.error(`[aba] falha ao ${action}:`, error);
+      toast.error(describeDbError(error, action));
+    },
+    [action]
+  );
+}
+
 export function useChildren() {
   const list = useServerFn(listChildrenFn);
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, error, refetch } = useQuery({
     queryKey: ["children"],
     queryFn: () => list({ data: undefined }),
     staleTime: 30_000,
+    retry: 1,
   });
   const queryClient = useQueryClient();
   const create = useServerFn(createChildFn);
   const remove = useServerFn(deleteChildFn);
+  const onCreateError = useErrorToast("cadastrar paciente");
+  const onDeleteError = useErrorToast("excluir paciente");
 
   const addMutation = useMutation({
     mutationFn: async (input: { name: string; birth_date?: string | null; target_behavior?: string | null; notes?: string | null }) => {
       return create({ data: input });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["children"] }),
+    onError: onCreateError,
   });
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => remove({ data: { id } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["children"] }),
+    onError: onDeleteError,
   });
 
   return {
     children: data as Child[],
     isLoading,
-    add: (name: string) => addMutation.mutate({ name }),
-    addFull: (input: Parameters<typeof addMutation.mutate>[0]) => addMutation.mutate(input),
-    remove: (id: string) => removeMutation.mutate(id),
+    error: error as Error | null,
+    refetch,
+    isSaving: addMutation.isPending,
+    add: (name: string) => addMutation.mutateAsync({ name }),
+    addFull: (input: Parameters<typeof addMutation.mutateAsync>[0]) => addMutation.mutateAsync(input),
+    remove: (id: string) => removeMutation.mutateAsync(id),
   };
 }
 
 export function useLogs(childId?: string | null) {
   const list = useServerFn(listLogsFn);
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, error, refetch } = useQuery({
     queryKey: ["abc_logs", childId ?? "all"],
     queryFn: () => list({ data: { childId: childId ?? null } }),
     staleTime: 10_000,
+    retry: 1,
   });
   const queryClient = useQueryClient();
   const create = useServerFn(createLogFn);
   const remove = useServerFn(deleteLogFn);
   const update = useServerFn(updateLogFn);
+  const onSaveError = useErrorToast("salvar registro");
+  const onUpdateError = useErrorToast("atualizar registro");
+  const onDeleteError = useErrorToast("excluir registro");
 
   const updateMutation = useMutation({
     mutationFn: (log: Omit<ABCLog, "owner_id" | "hypothesizedFunction" | "created_at">) => update({ data: log }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["abc_logs"] }),
+    onError: onUpdateError,
   });
 
   const addMutation = useMutation({
     mutationFn: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) =>
       create({ data: log }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["abc_logs"] }),
+    onError: onSaveError,
   });
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => remove({ data: { id } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["abc_logs"] }),
+    onError: onDeleteError,
   });
 
   return {
     logs: data as ABCLog[],
     isLoading,
-    add: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) => addMutation.mutate(log),
-    update: (log: Omit<ABCLog, "owner_id" | "hypothesizedFunction" | "created_at">) => updateMutation.mutate(log),
-    remove: (id: string) => removeMutation.mutate(id),
+    error: error as Error | null,
+    refetch,
+    add: (log: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">) => addMutation.mutateAsync(log),
+    update: (log: Omit<ABCLog, "owner_id" | "hypothesizedFunction" | "created_at">) => updateMutation.mutateAsync(log),
+    remove: (id: string) => removeMutation.mutateAsync(id),
   };
 }
 
 export function useFASessions(childId?: string | null) {
   const list = useServerFn(listSessionsFn);
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, error, refetch } = useQuery({
     queryKey: ["fa_sessions", childId ?? "all"],
     queryFn: () => list({ data: { childId: childId ?? null } }),
     staleTime: 10_000,
+    retry: 1,
   });
   const queryClient = useQueryClient();
   const create = useServerFn(createSessionFn);
   const clear = useServerFn(clearSessionsFn);
+  const onSaveError = useErrorToast("salvar sessão");
+  const onClearError = useErrorToast("limpar sessões");
 
   const addMutation = useMutation({
     mutationFn: (session: Omit<FASession, "id" | "owner_id" | "createdAt">) =>
       create({ data: session }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fa_sessions"] }),
+    onError: onSaveError,
   });
 
   const clearMutation = useMutation({
     mutationFn: () => clear({ data: { childId: childId ?? null } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fa_sessions"] }),
+    onError: onClearError,
   });
 
   return {
     sessions: data as FASession[],
     isLoading,
-    add: (session: Omit<FASession, "id" | "owner_id" | "createdAt">) => addMutation.mutate(session),
-    clear: () => clearMutation.mutate(),
+    error: error as Error | null,
+    refetch,
+    add: (session: Omit<FASession, "id" | "owner_id" | "createdAt">) => addMutation.mutateAsync(session),
+    clear: () => clearMutation.mutateAsync(),
   };
 }
+
 
 // --- Analytics ---
 
