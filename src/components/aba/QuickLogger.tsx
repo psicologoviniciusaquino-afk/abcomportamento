@@ -65,7 +65,7 @@ export function QuickLogger() {
   const [pendingChildName, setPendingChildName] = useState<string | null>(null);
   const newChildRef = useRef<HTMLInputElement>(null);
   const [childId, setChildId] = useState<string>("");
-  const [phase, setPhase] = useState<Phase>("baseline");
+  const phase: Phase = "baseline";
   const [step, setStep] = useState<Step>(0);
   const [ant, setAnt] = useState<typeof ANTECEDENTES[number] | null>(null);
   const [beh, setBeh] = useState<typeof COMPORTAMENTOS[number] | null>(null);
