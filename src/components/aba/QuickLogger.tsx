@@ -328,23 +328,6 @@ export function QuickLogger() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-xl">
-          <button
-            onClick={() => setPhase("baseline")}
-            className={cn(
-              "py-2 rounded-lg text-sm font-semibold transition-all",
-              phase === "baseline" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
-            )}
-          >Linha de Base</button>
-          <button
-            onClick={() => setPhase("intervention")}
-            className={cn(
-              "py-2 rounded-lg text-sm font-semibold transition-all",
-              phase === "intervention" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
-            )}
-          >Intervenção</button>
-        </div>
-
         <div className="flex items-center gap-1.5 pt-1">
           {(["A", "B", "C"] as const).map((l, i) => {
             const done = i === 0 ? !!ant : i === 1 ? !!beh && (beh?.label !== "Outro" || customBeh.trim()) : !!con;
