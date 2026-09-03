@@ -472,13 +472,11 @@ export function QuickLogger() {
           disabled={!ready}
           className={cn(
             "w-full py-4 rounded-2xl text-base font-bold tracking-tight shadow-lg transition-all",
-            "flex items-center justify-center gap-2",
             ready
               ? "bg-success text-success-foreground active:scale-[0.98]"
               : "bg-muted text-muted-foreground"
           )}
         >
-          <Check className="size-5" />
           Registrar comportamento
         </button>
       </div>
