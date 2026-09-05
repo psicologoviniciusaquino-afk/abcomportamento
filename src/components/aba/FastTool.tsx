@@ -39,6 +39,9 @@ const OPTIONS: { key: Answer; label: string; active: string }[] = [
 export function FastTool() {
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
   const [note14, setNote14] = useState("");
+  const [childName, setChildName] = useState("");
+  const [appliedBy, setAppliedBy] = useState("");
+  const [respondedBy, setRespondedBy] = useState("");
 
   const answered = Object.keys(answers).length;
 
@@ -56,7 +59,13 @@ export function FastTool() {
     .filter(({ s }) => s === max && s > 0)
     .map(({ i }) => i);
 
-  const reset = () => { setAnswers({}); setNote14(""); };
+  const reset = () => {
+    setAnswers({});
+    setNote14("");
+    setChildName("");
+    setAppliedBy("");
+    setRespondedBy("");
+  };
 
   return (
     <div className="space-y-6">
@@ -87,6 +96,40 @@ export function FastTool() {
           />
         </div>
       </div>
+
+      {/* Identificação */}
+      <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <h2 className="text-sm font-semibold mb-3">Identificação</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <label className="block">
+            <span className="text-xs text-muted-foreground">Nome da criança</span>
+            <input
+              value={childName}
+              onChange={(e) => setChildName(e.target.value)}
+              placeholder="Ex.: Ana Souza"
+              className="mt-1 w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs text-muted-foreground">Quem aplicou</span>
+            <input
+              value={appliedBy}
+              onChange={(e) => setAppliedBy(e.target.value)}
+              placeholder="Ex.: Terapeuta responsável"
+              className="mt-1 w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs text-muted-foreground">Quem respondeu</span>
+            <input
+              value={respondedBy}
+              onChange={(e) => setRespondedBy(e.target.value)}
+              placeholder="Ex.: Pai, mãe, professor"
+              className="mt-1 w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
+            />
+          </label>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Perguntas */}
