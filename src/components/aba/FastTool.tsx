@@ -39,6 +39,9 @@ const OPTIONS: { key: Answer; label: string; active: string }[] = [
 export function FastTool() {
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
   const [note14, setNote14] = useState("");
+  const [childName, setChildName] = useState("");
+  const [appliedBy, setAppliedBy] = useState("");
+  const [respondedBy, setRespondedBy] = useState("");
 
   const answered = Object.keys(answers).length;
 
