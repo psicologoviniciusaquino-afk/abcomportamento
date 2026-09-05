@@ -59,7 +59,13 @@ export function FastTool() {
     .filter(({ s }) => s === max && s > 0)
     .map(({ i }) => i);
 
-  const reset = () => { setAnswers({}); setNote14(""); };
+  const reset = () => {
+    setAnswers({});
+    setNote14("");
+    setChildName("");
+    setAppliedBy("");
+    setRespondedBy("");
+  };
 
   return (
     <div className="space-y-6">
