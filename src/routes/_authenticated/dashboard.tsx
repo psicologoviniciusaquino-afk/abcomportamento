@@ -6,6 +6,8 @@ import { Logger } from "@/components/aba/Logger";
 import { QuickLogger } from "@/components/aba/QuickLogger";
 import { Simulator } from "@/components/aba/Simulator";
 import { Education } from "@/components/aba/Education";
+import { FunctionFinder } from "@/components/aba/FunctionFinder";
+import { FastTool } from "@/components/aba/FastTool";
 import { Toaster } from "@/components/ui/sonner";
 import { useFASessions, useLogs } from "@/lib/aba-store";
 
@@ -31,6 +33,8 @@ function DashboardPage() {
         {tab === "dashboard" && <Dashboard logs={logs} sessions={sessions} />}
         {tab === "quick" && <QuickLogger />}
         {tab === "logger" && <Logger />}
+        {tab === "functions" && <FunctionFinder />}
+        {tab === "fast" && <FastTool />}
         {tab === "simulator" && <Simulator />}
         {tab === "education" && <Education />}
       </main>

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, FlaskConical, BookOpen, Brain, Zap, LogOut, UserCircle } from "lucide-react";
+import { LayoutDashboard, ClipboardList, FlaskConical, BookOpen, Brain, Zap, LogOut, UserCircle, Target, ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "@tanstack/react-router";
@@ -6,12 +6,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
-export type TabKey = "dashboard" | "quick" | "logger" | "simulator" | "education";
+export type TabKey = "dashboard" | "quick" | "logger" | "simulator" | "education" | "functions" | "fast";
 
 const items: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "dashboard", label: "Painel", icon: LayoutDashboard },
   { key: "quick", label: "Sessão", icon: Zap },
   { key: "logger", label: "Registro ABC", icon: ClipboardList },
+  { key: "functions", label: "Funções", icon: Target },
+  { key: "fast", label: "FAST", icon: ClipboardCheck },
   { key: "simulator", label: "Simulador AF", icon: FlaskConical },
   { key: "education", label: "Aprender", icon: BookOpen },
 ];
@@ -83,7 +85,7 @@ export function Sidebar({ active, onChange }: { active: TabKey; onChange: (k: Ta
         </div>
       </aside>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur grid grid-cols-5">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur grid grid-cols-7">
         {items.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
