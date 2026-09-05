@@ -17,7 +17,18 @@ import {
   clearSessionsFn,
 } from "./aba.functions";
 
-export type FunctionType = "Atenção" | "Fuga" | "Tangível" | "Sensorial";
+export type FunctionType = "Atenção" | "Esquiva/fuga" | "Tangível" | "Sensorial";
+
+/** Normaliza rótulos legados (ex.: "Fuga") para os 4 nomes canônicos. */
+export function normalizeFunction(value?: string | null): FunctionType | "Pendente" {
+  if (!value) return "Pendente";
+  const v = value.trim().toLowerCase();
+  if (v === "fuga" || v === "esquiva" || v === "esquiva/fuga" || v === "esquiva / fuga") return "Esquiva/fuga";
+  if (v === "atenção" || v === "atencao") return "Atenção";
+  if (v === "tangível" || v === "tangivel") return "Tangível";
+  if (v === "sensorial") return "Sensorial";
+  return "Pendente";
+}
 export type Phase = "baseline" | "intervention";
 export type FACondition = "Attention" | "Demand" | "Tangible" | "Play";
 
