@@ -42,7 +42,7 @@ const CON_GROUPS: TagGroup[] = [
   },
   {
     category: "Reforço Negativo (Fuga/Esquiva)",
-    hint: "→ Função Fuga",
+    hint: "→ Função Esquiva/fuga",
     tone: "var(--chart-2)",
     tags: ["Retirada da tarefa", "Retirada da tarefa / pausa", "Redução da exigência (ajuda total)", "Retirada do ambiente", "Evasão (saída/fuga do contexto)"],
   },
