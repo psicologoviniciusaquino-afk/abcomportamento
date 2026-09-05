@@ -17,7 +17,18 @@ import {
   clearSessionsFn,
 } from "./aba.functions";
 
-export type FunctionType = "Atenção" | "Fuga" | "Tangível" | "Sensorial";
+export type FunctionType = "Atenção" | "Esquiva/fuga" | "Tangível" | "Sensorial";
+
+/** Normaliza rótulos legados (ex.: "Fuga") para os 4 nomes canônicos. */
+export function normalizeFunction(value?: string | null): FunctionType | "Pendente" {
+  if (!value) return "Pendente";
+  const v = value.trim().toLowerCase();
+  if (v === "fuga" || v === "esquiva" || v === "esquiva/fuga" || v === "esquiva / fuga") return "Esquiva/fuga";
+  if (v === "atenção" || v === "atencao") return "Atenção";
+  if (v === "tangível" || v === "tangivel") return "Tangível";
+  if (v === "sensorial") return "Sensorial";
+  return "Pendente";
+}
 export type Phase = "baseline" | "intervention";
 export type FACondition = "Attention" | "Demand" | "Tangible" | "Play";
 
@@ -234,11 +245,11 @@ export function computeHypothesis(logs: ABCLog[]): FunctionType | "Pendente" {
 
 export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente" {
   const t = tags.map((x) => x.toLowerCase()).join(" | ");
-  if (/(retirada da tarefa|pausa|redução da exigência|retirada do ambiente|demanda removida|evasão|fuga)/.test(t)) return "Fuga";
+  if (/(retirada da tarefa|pausa|redução da exigência|retirada do ambiente|demanda removida|evasão|fuga)/.test(t)) return "Esquiva/fuga";
   if (/(atenção social|atenção verbal|contato físico|proximidade|atenção dada|retirada da atenção)/.test(t)) return "Atenção";
   if (/(acesso ao objeto|entrega do objeto|alimento|item fornecido|tangível|retirada do objeto)/.test(t)) return "Tangível";
   if (/(nenhuma consequência|ignorado|sozinho|sem estímulos|excesso de estímulos|desconforto)/.test(t)) return "Sensorial";
-  if (/(demanda|transição|rotina|instrução|atividade aversiva)/.test(t)) return "Fuga";
+  if (/(demanda|transição|rotina|instrução|atividade aversiva)/.test(t)) return "Esquiva/fuga";
   if (/(retirada de atenção|desvio de atenção|interação social)/.test(t)) return "Atenção";
   if (/(restrição de acesso|atraso|espera|item negado|objeto preferido)/.test(t)) return "Tangível";
   if (/(sozinho)/.test(t)) return "Sensorial";

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { ABCLog, Child, FASession } from "./aba-store";
-import { inferFunctionFromTags } from "./aba-store";
+import { inferFunctionFromTags, normalizeFunction } from "./aba-store";
 import { throwDbError } from "./aba-errors";
 
 type Client = SupabaseClient<Database>;
@@ -33,7 +33,7 @@ function toCamelLog(row: Record<string, unknown>): ABCLog {
     consequenceTags: (row.consequence_tags as string[]) ?? [],
     environmentTags: (row.environment_tags as string[]) ?? [],
     environmentNotes: row.environment_notes ? String(row.environment_notes) : null,
-    hypothesizedFunction: (row.hypothesized_function as ABCLog["hypothesizedFunction"]) ?? "Pendente",
+    hypothesizedFunction: normalizeFunction(row.hypothesized_function as string | null),
     created_at: String(row.created_at),
   };
 }
