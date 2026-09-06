@@ -48,6 +48,10 @@ export function FastTool() {
   const [childName, setChildName] = useState("");
   const [appliedBy, setAppliedBy] = useState("");
   const [respondedBy, setRespondedBy] = useState("");
+  const [childId, setChildId] = useState<string>("");
+
+  const { children } = useChildren();
+  const { assessments, isLoading: loadingHistory, isSaving, add, remove } = useFastAssessments(childId || null);
 
   const answered = Object.keys(answers).length;
 
@@ -72,6 +76,40 @@ export function FastTool() {
     setAppliedBy("");
     setRespondedBy("");
   };
+
+  const save = async () => {
+    if (answered === 0) {
+      toast.error("Responda ao menos uma pergunta antes de salvar.");
+      return;
+    }
+    const name = childName.trim() || children.find((c) => c.id === childId)?.name || "";
+    if (!name) {
+      toast.error("Informe o nome da criança.");
+      return;
+    }
+    const hypothesis = Array.from(new Set(topIndices.map((i) => GROUP_FUNCTIONS[i]))).join(" / ");
+    const answerMap: Record<string, Answer> = {};
+    Object.entries(answers).forEach(([k, v]) => {
+      answerMap[k] = v;
+    });
+    try {
+      await add({
+        child_id: childId || null,
+        child_name: name,
+        applied_by: appliedBy.trim(),
+        responded_by: respondedBy.trim(),
+        answers: answerMap,
+        note_14: note14.trim(),
+        scores,
+        primary_hypothesis: hypothesis,
+      });
+      toast.success("Avaliação FAST salva no histórico do paciente.");
+      reset();
+    } catch {
+      /* erro já exibido */
+    }
+  };
+
 
   return (
     <div className="space-y-6">
