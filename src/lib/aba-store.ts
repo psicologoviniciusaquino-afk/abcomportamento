@@ -15,7 +15,13 @@ import {
   listSessionsFn,
   createSessionFn,
   clearSessionsFn,
+  listFastAssessmentsFn,
+  createFastAssessmentFn,
+  deleteFastAssessmentFn,
 } from "./aba.functions";
+import type { FastAssessment } from "./aba.server";
+
+export type { FastAssessment };
 
 export type FunctionType = "Atenção" | "Esquiva/fuga" | "Tangível" | "Sensorial";
 
@@ -206,6 +212,42 @@ export function useFASessions(childId?: string | null) {
   };
 }
 
+export function useFastAssessments(childId?: string | null) {
+  const list = useServerFn(listFastAssessmentsFn);
+  const { data = [], isLoading, error, refetch } = useQuery({
+    queryKey: ["fast_assessments", childId ?? "all"],
+    queryFn: () => list({ data: { childId: childId ?? null } }),
+    staleTime: 10_000,
+    retry: 1,
+  });
+  const queryClient = useQueryClient();
+  const create = useServerFn(createFastAssessmentFn);
+  const remove = useServerFn(deleteFastAssessmentFn);
+  const onSaveError = useErrorToast("salvar avaliação FAST");
+  const onDeleteError = useErrorToast("excluir avaliação FAST");
+
+  const addMutation = useMutation({
+    mutationFn: (input: Omit<FastAssessment, "id" | "created_at">) => create({ data: input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fast_assessments"] }),
+    onError: onSaveError,
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => remove({ data: { id } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fast_assessments"] }),
+    onError: onDeleteError,
+  });
+
+  return {
+    assessments: data as FastAssessment[],
+    isLoading,
+    error: error as Error | null,
+    refetch,
+    isSaving: addMutation.isPending,
+    add: (input: Omit<FastAssessment, "id" | "created_at">) => addMutation.mutateAsync(input),
+    remove: (id: string) => removeMutation.mutateAsync(id),
+  };
+}
 
 // --- Analytics ---
 
