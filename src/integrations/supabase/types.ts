@@ -144,6 +144,59 @@ export type Database = {
           },
         ]
       }
+      fast_assessments: {
+        Row: {
+          answers: Json
+          applied_by: string
+          child_id: string | null
+          child_name: string
+          created_at: string
+          id: string
+          note_14: string
+          owner_id: string
+          primary_hypothesis: string
+          responded_by: string
+          scores: number[]
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          applied_by?: string
+          child_id?: string | null
+          child_name?: string
+          created_at?: string
+          id?: string
+          note_14?: string
+          owner_id: string
+          primary_hypothesis?: string
+          responded_by?: string
+          scores?: number[]
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          applied_by?: string
+          child_id?: string | null
+          child_name?: string
+          created_at?: string
+          id?: string
+          note_14?: string
+          owner_id?: string
+          primary_hypothesis?: string
+          responded_by?: string
+          scores?: number[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fast_assessments_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
