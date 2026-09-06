@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Sparkles, LogOut, Package, MessageSquare, CheckCircle2, RefreshCw,
@@ -53,31 +53,12 @@ const FUNCTIONS: {
   },
 ];
 
-const QUESTIONS: { text: string; points: FunctionKey }[] = [
-  { text: "O comportamento continua acontecendo mesmo se a criança estiver sozinha?", points: "sensorial" },
-  { text: "Acontece logo após uma ordem, tarefa ou pedido ser feito?", points: "esquiva" },
-  { text: "Acontece quando um objeto/atividade é retirado ou negado?", points: "tangivel" },
-  { text: "Acontece quando a atenção do adulto é direcionada a outra pessoa ou coisa?", points: "atencao" },
-];
-
 export function FunctionFinder() {
   const [selected, setSelected] = useState<FunctionKey | null>(null);
-  const [answers, setAnswers] = useState<Record<number, boolean>>({});
 
-  const suggestion = useMemo<FunctionKey | null>(() => {
-    if (Object.keys(answers).length < QUESTIONS.length) return null;
-    const score: Record<FunctionKey, number> = { sensorial: 0, esquiva: 0, tangivel: 0, atencao: 0 };
-    QUESTIONS.forEach((q, i) => {
-      if (answers[i]) score[q.points] += 1;
-    });
-    const top = Object.entries(score).sort((a, b) => b[1] - a[1]);
-    return top[0][1] > 0 ? (top[0][0] as FunctionKey) : null;
-  }, [answers]);
+  const activeFn = FUNCTIONS.find((f) => f.key === selected);
 
-  const active = selected ?? suggestion;
-  const activeFn = FUNCTIONS.find((f) => f.key === active);
-
-  const reset = () => { setSelected(null); setAnswers({}); };
+  const reset = () => { setSelected(null); };
 
   return (
     <div className="space-y-6">
