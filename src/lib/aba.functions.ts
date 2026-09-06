@@ -68,7 +68,7 @@ export const listFastAssessmentsFn = createServerFn({ method: "GET" })
 export const createFastAssessmentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => fastAssessmentSchema.parse(data))
-  .handler(async ({ data, context }) => aba.createFastAssessment(context.supabase, context.userId, data));
+  .handler(async ({ data, context }) => aba.createFastAssessment(context.supabase, context.userId, { ...data, child_id: data.child_id ?? null }));
 
 export const deleteFastAssessmentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
