@@ -66,10 +66,10 @@ export function FunctionFinder() {
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Funções do Comportamento</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-            Identifique rapidamente qual função mantém um comportamento observável. Toque em um card ou responda ao testador.
+            Identifique rapidamente qual função mantém um comportamento observável. Toque em um card.
           </p>
         </div>
-        {(selected || Object.keys(answers).length > 0) && (
+        {selected && (
           <button
             onClick={reset}
             className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
@@ -82,7 +82,7 @@ export function FunctionFinder() {
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {FUNCTIONS.map((f) => {
           const Icon = f.icon;
-          const isActive = active === f.key;
+          const isActive = selected === f.key;
           return (
             <button
               key={f.key}
@@ -109,49 +109,11 @@ export function FunctionFinder() {
         })}
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <h2 className="font-semibold mb-1">Testador Rápido de Função</h2>
-        <p className="text-xs text-muted-foreground mb-4">
-          Responda 4 perguntas diretas. A função sugerida aparece automaticamente.
-        </p>
-        <div className="space-y-3">
-          {QUESTIONS.map((q, i) => (
-            <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-border p-3">
-              <div className="flex-1 text-sm">
-                <span className="font-medium text-muted-foreground mr-2">{i + 1}.</span>
-                {q.text}
-              </div>
-              <div className="flex gap-2 shrink-0">
-                {(["Sim", "Não"] as const).map((label) => {
-                  const isYes = label === "Sim";
-                  const chosen = answers[i] === isYes;
-                  return (
-                    <button
-                      key={label}
-                      onClick={() => setAnswers((a) => ({ ...a, [i]: isYes }))}
-                      className={cn(
-                        "px-4 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                        chosen
-                          ? isYes
-                            ? "bg-success text-success-foreground border-success"
-                            : "bg-muted text-foreground border-border"
-                          : "bg-background text-muted-foreground border-border hover:border-primary/40"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {activeFn && (
         <section className={cn("rounded-2xl border-2 p-5 shadow-sm", "border-primary/30 bg-primary/5")}>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary mb-2">
-            {selected ? "Função selecionada" : "Função sugerida"}
+            Função selecionada
           </div>
           <div className="flex items-start gap-3">
             <span className={cn("size-12 rounded-xl grid place-items-center shrink-0", activeFn.bar)}>
