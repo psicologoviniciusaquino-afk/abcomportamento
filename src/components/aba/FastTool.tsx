@@ -144,8 +144,28 @@ export function FastTool() {
       {/* Identificação */}
       <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
         <h2 className="text-sm font-semibold mb-3">Identificação</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="block">
+            <span className="text-xs text-muted-foreground">Paciente cadastrado</span>
+            <select
+              value={childId}
+              onChange={(e) => {
+                setChildId(e.target.value);
+                const c = children.find((x) => x.id === e.target.value);
+                if (c) setChildName(c.name);
+              }}
+              className="mt-1 w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">Sem vínculo</option>
+              {children.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+
             <span className="text-xs text-muted-foreground">Nome da criança</span>
             <input
               value={childName}
