@@ -39,3 +39,14 @@ export const idSchema = z.object({
 export const optionalChildIdSchema = z.object({
   childId: z.string().uuid().optional().nullable(),
 });
+
+export const fastAssessmentSchema = z.object({
+  child_id: z.string().uuid().optional().nullable(),
+  child_name: z.string().max(120).default(""),
+  applied_by: z.string().max(120).default(""),
+  responded_by: z.string().max(120).default(""),
+  answers: z.record(z.string(), z.enum(["sim", "nao", "na"])).default({}),
+  note_14: z.string().max(1000).default(""),
+  scores: z.array(z.number().int().min(0).max(4)).length(4),
+  primary_hypothesis: z.string().max(300).default(""),
+});

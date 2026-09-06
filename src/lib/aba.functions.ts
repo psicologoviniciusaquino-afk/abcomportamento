@@ -7,6 +7,7 @@ import {
   faSessionSchema,
   idSchema,
   optionalChildIdSchema,
+  fastAssessmentSchema,
 } from "./aba.schemas";
 import * as aba from "./aba.server";
 
@@ -58,3 +59,18 @@ export const clearSessionsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => optionalChildIdSchema.parse(data))
   .handler(async ({ data, context }) => aba.clearSessions(context.supabase, context.userId, data.childId));
+
+export const listFastAssessmentsFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => optionalChildIdSchema.parse(data))
+  .handler(async ({ data, context }) => aba.listFastAssessments(context.supabase, context.userId, data.childId));
+
+export const createFastAssessmentFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => fastAssessmentSchema.parse(data))
+  .handler(async ({ data, context }) => aba.createFastAssessment(context.supabase, context.userId, data));
+
+export const deleteFastAssessmentFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => idSchema.parse(data))
+  .handler(async ({ data, context }) => aba.deleteFastAssessment(context.supabase, context.userId, data.id));
