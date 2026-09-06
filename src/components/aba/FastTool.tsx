@@ -303,8 +303,56 @@ export function FastTool() {
               </p>
             </div>
           )}
+
+          <button
+            onClick={save}
+            disabled={isSaving}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground font-semibold py-3 disabled:opacity-60"
+          >
+            <Save className="size-4" />
+            {isSaving ? "Salvando..." : "Salvar avaliação"}
+          </button>
         </aside>
       </div>
+
+      {/* Histórico */}
+      <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <History className="size-4 text-primary" />
+          <h2 className="text-sm font-semibold">
+            Histórico de avaliações {childId ? "do paciente" : "(todos os pacientes)"}
+          </h2>
+        </div>
+        {loadingHistory ? (
+          <p className="text-sm text-muted-foreground">Carregando...</p>
+        ) : assessments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma avaliação FAST salva ainda.</p>
+        ) : (
+          <ul className="space-y-2">
+            {assessments.map((a) => (
+              <li key={a.id} className="rounded-xl border border-border p-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate">{a.child_name || "Sem nome"}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(a.created_at).toLocaleString("pt-BR")} · Hipótese: {a.primary_hypothesis || "Pendente"}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Aplicou: {a.applied_by || "—"} · Respondeu: {a.responded_by || "—"} · Pontuação: {a.scores.join(" / ")}
+                  </div>
+                </div>
+                <button
+                  onClick={() => remove(a.id)}
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                  aria-label="Excluir avaliação"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
+
   );
 }
