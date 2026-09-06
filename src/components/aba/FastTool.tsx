@@ -33,6 +33,9 @@ const GROUPS: { name: string; desc: string; tone: string; bar: string }[] = [
   { name: "Automático (Atenuação da dor / Fisiológico)", desc: "Itens 13–16", tone: "text-chart-3", bar: "bg-chart-3/10" },
 ];
 
+const GROUP_FUNCTIONS = ["Atenção", "Esquiva/fuga", "Sensorial", "Sensorial"] as const;
+
+
 const OPTIONS: { key: Answer; label: string; active: string }[] = [
   { key: "sim", label: "Sim", active: "bg-success text-success-foreground border-success" },
   { key: "nao", label: "Não", active: "bg-muted text-foreground border-border" },
