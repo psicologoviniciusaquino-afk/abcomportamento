@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { ClipboardCheck, RefreshCw, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
+import { useChildren, useFastAssessments } from "@/lib/aba-store";
+import { ClipboardCheck, RefreshCw, TrendingUp, Save, History, Trash2 } from "lucide-react";
+
 
 type Answer = "sim" | "nao" | "na";
 
@@ -30,6 +33,9 @@ const GROUPS: { name: string; desc: string; tone: string; bar: string }[] = [
   { name: "Automático (Atenuação da dor / Fisiológico)", desc: "Itens 13–16", tone: "text-chart-3", bar: "bg-chart-3/10" },
 ];
 
+const GROUP_FUNCTIONS = ["Atenção", "Esquiva/fuga", "Sensorial", "Sensorial"] as const;
+
+
 const OPTIONS: { key: Answer; label: string; active: string }[] = [
   { key: "sim", label: "Sim", active: "bg-success text-success-foreground border-success" },
   { key: "nao", label: "Não", active: "bg-muted text-foreground border-border" },
@@ -42,6 +48,10 @@ export function FastTool() {
   const [childName, setChildName] = useState("");
   const [appliedBy, setAppliedBy] = useState("");
   const [respondedBy, setRespondedBy] = useState("");
+  const [childId, setChildId] = useState<string>("");
+
+  const { children } = useChildren();
+  const { assessments, isLoading: loadingHistory, isSaving, add, remove } = useFastAssessments(childId || null);
 
   const answered = Object.keys(answers).length;
 
@@ -66,6 +76,40 @@ export function FastTool() {
     setAppliedBy("");
     setRespondedBy("");
   };
+
+  const save = async () => {
+    if (answered === 0) {
+      toast.error("Responda ao menos uma pergunta antes de salvar.");
+      return;
+    }
+    const name = childName.trim() || children.find((c) => c.id === childId)?.name || "";
+    if (!name) {
+      toast.error("Informe o nome da criança.");
+      return;
+    }
+    const hypothesis = Array.from(new Set(topIndices.map((i) => GROUP_FUNCTIONS[i]))).join(" / ");
+    const answerMap: Record<string, Answer> = {};
+    Object.entries(answers).forEach(([k, v]) => {
+      answerMap[k] = v;
+    });
+    try {
+      await add({
+        child_id: childId || null,
+        child_name: name,
+        applied_by: appliedBy.trim(),
+        responded_by: respondedBy.trim(),
+        answers: answerMap,
+        note_14: note14.trim(),
+        scores,
+        primary_hypothesis: hypothesis,
+      });
+      toast.success("Avaliação FAST salva no histórico do paciente.");
+      reset();
+    } catch {
+      /* erro já exibido */
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -100,8 +144,28 @@ export function FastTool() {
       {/* Identificação */}
       <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
         <h2 className="text-sm font-semibold mb-3">Identificação</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="block">
+            <span className="text-xs text-muted-foreground">Paciente cadastrado</span>
+            <select
+              value={childId}
+              onChange={(e) => {
+                setChildId(e.target.value);
+                const c = children.find((x) => x.id === e.target.value);
+                if (c) setChildName(c.name);
+              }}
+              className="mt-1 w-full bg-background border border-input rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">Sem vínculo</option>
+              {children.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+
             <span className="text-xs text-muted-foreground">Nome da criança</span>
             <input
               value={childName}
@@ -239,8 +303,56 @@ export function FastTool() {
               </p>
             </div>
           )}
+
+          <button
+            onClick={save}
+            disabled={isSaving}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground font-semibold py-3 disabled:opacity-60"
+          >
+            <Save className="size-4" />
+            {isSaving ? "Salvando..." : "Salvar avaliação"}
+          </button>
         </aside>
       </div>
+
+      {/* Histórico */}
+      <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <History className="size-4 text-primary" />
+          <h2 className="text-sm font-semibold">
+            Histórico de avaliações {childId ? "do paciente" : "(todos os pacientes)"}
+          </h2>
+        </div>
+        {loadingHistory ? (
+          <p className="text-sm text-muted-foreground">Carregando...</p>
+        ) : assessments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma avaliação FAST salva ainda.</p>
+        ) : (
+          <ul className="space-y-2">
+            {assessments.map((a) => (
+              <li key={a.id} className="rounded-xl border border-border p-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate">{a.child_name || "Sem nome"}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(a.created_at).toLocaleString("pt-BR")} · Hipótese: {a.primary_hypothesis || "Pendente"}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Aplicou: {a.applied_by || "—"} · Respondeu: {a.responded_by || "—"} · Pontuação: {a.scores.join(" / ")}
+                  </div>
+                </div>
+                <button
+                  onClick={() => remove(a.id)}
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                  aria-label="Excluir avaliação"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
+
   );
 }

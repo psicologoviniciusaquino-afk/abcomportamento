@@ -181,3 +181,68 @@ export async function clearSessions(supabase: Client, userId: string, childId?: 
   const { error } = await q;
   if (error) throwDbError(error, "limpar sessões");
 }
+
+// FAST assessments
+
+export interface FastAssessment {
+  id: string;
+  child_id: string | null;
+  child_name: string;
+  applied_by: string;
+  responded_by: string;
+  answers: Record<string, "sim" | "nao" | "na">;
+  note_14: string;
+  scores: number[];
+  primary_hypothesis: string;
+  created_at: string;
+}
+
+function toFast(row: Record<string, unknown>): FastAssessment {
+  return {
+    id: String(row.id),
+    child_id: row.child_id ? String(row.child_id) : null,
+    child_name: String(row.child_name ?? ""),
+    applied_by: String(row.applied_by ?? ""),
+    responded_by: String(row.responded_by ?? ""),
+    answers: (row.answers as FastAssessment["answers"]) ?? {},
+    note_14: String(row.note_14 ?? ""),
+    scores: (row.scores as number[]) ?? [0, 0, 0, 0],
+    primary_hypothesis: String(row.primary_hypothesis ?? ""),
+    created_at: String(row.created_at),
+  };
+}
+
+export async function listFastAssessments(
+  supabase: Client,
+  userId: string,
+  childId?: string | null
+): Promise<FastAssessment[]> {
+  let q = supabase
+    .from("fast_assessments")
+    .select("*")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false });
+  if (childId) q = q.eq("child_id", childId);
+  const { data, error } = await q;
+  if (error) throwDbError(error, "listar avaliações FAST");
+  return (data || []).map((r) => toFast(r as Record<string, unknown>));
+}
+
+export async function createFastAssessment(
+  supabase: Client,
+  userId: string,
+  input: Omit<FastAssessment, "id" | "created_at">
+): Promise<FastAssessment> {
+  const { data, error } = await supabase
+    .from("fast_assessments")
+    .insert({ owner_id: userId, ...input })
+    .select()
+    .single();
+  if (error) throwDbError(error, "salvar avaliação FAST");
+  return toFast(data as Record<string, unknown>);
+}
+
+export async function deleteFastAssessment(supabase: Client, _userId: string, id: string): Promise<void> {
+  const { error } = await supabase.from("fast_assessments").delete().eq("id", id);
+  if (error) throwDbError(error, "excluir avaliação FAST");
+}
