@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Triagem clínica — Consultório Vinicius Aquino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F5F1;
+    --card:#FFFFFF;
+    --line:#DCE3DC;
+    --ink:#233028;
+    --ink-soft:#5B675E;
+    --accent:#3F6B5C;
+    --accent-soft:#E7EEE9;
+    --mark:#A9781F;
+    --radius:10px;
+    --maxw:560px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  #progress-wrap{
+    width:100%;
+    max-width:var(--maxw);
+    padding:18px 20px 0 20px;
+  }
+  #progress-track{
+    height:4px;
+    width:100%;
+    background:var(--line);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  #progress-bar{
+    height:100%;
+    background:var(--accent);
+    width:0%;
+    transition:width .25s ease;
+  }
+  #step-counter{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    letter-spacing:.02em;
+  }
+  main{
+    width:100%;
+    max-width:var(--maxw);
+    padding:28px 20px 40px 20px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:26px 22px;
+  }
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:26px;
+    line-height:1.3;
+    margin:0 0 10px 0;
+  }
+  .subtitle{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0 0 14px 0;
+  }
+  .description{
+    font-size:15px;
+    line-height:1.65;
+    color:var(--ink);
+    white-space:pre-line;
+    margin:0 0 20px 0;
+  }
+  .required-mark{ color:var(--mark); }
+  .field{
+    margin-top:18px;
+  }
+  input[type="text"], input[type="date"]{
+    width:100%;
+    font-family:'Work Sans', sans-serif;
+    font-size:16px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#FCFDFC;
+    color:var(--ink);
+  }
+  input[type="text"]:focus, input[type="date"]:focus{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  .option-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:6px;
+  }
+  .option{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:13px 14px;
+    cursor:pointer;
+    background:#FCFDFC;
+    font-size:15px;
+    line-height:1.4;
+    text-align:left;
+  }
+  .option .detail{
+    display:block;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+  .option.selected{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .option:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+  .scale-row{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  .scale-btn{
+    flex:1;
+    aspect-ratio:1;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#FCFDFC;
+    font-size:16px;
+    font-weight:500;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .scale-btn.selected{
+    border-color:var(--accent);
+    background:var(--accent);
+    color:#fff;
+  }
+  .scale-legend{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:8px;
+  }
+  .maxchoice-note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:8px;
+  }
+  .nav-row{
+    display:flex;
+    gap:10px;
+    margin-top:26px;
+  }
+  button.primary{
+    flex:1;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:14px 18px;
+    font-family:'Work Sans', sans-serif;
+    font-size:15px;
+    font-weight:500;
+    cursor:pointer;
+  }
+  button.primary:disabled{
+    background:#B9C7BF;
+    cursor:not-allowed;
+  }
+  button.ghost{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px 16px;
+    font-family:'Work Sans', sans-serif;
+    font-size:15px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .error-msg{
+    color:#A3402B;
+    font-size:13px;
+    margin-top:10px;
+  }
+  .safety-note{
+    margin-top:22px;
+    padding:14px 16px;
+    background:var(--accent-soft);
+    border-radius:8px;
+    font-size:13.5px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .final-summary{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    background:#FAFAF8;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    max-height:180px;
+    overflow-y:auto;
+    white-space:pre-wrap;
+    margin-top:14px;
+    font-family:monospace;
+  }
+  footer{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    padding:0 20px 20px 20px;
+    text-align:center;
+  }
+  .report{
+    display:none;
+  }
+  .report-h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:22px;
+    margin:0 0 4px 0;
+  }
+  .report-h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:16px;
+    margin:26px 0 8px 0;
+  }
+  .report-meta{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 10px 0;
+  }
+  .report-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+  }
+  .report-table td{
+    border-bottom:1px solid var(--line);
+    padding:7px 8px;
+    vertical-align:top;
+  }
+  .report-table td:first-child{
+    width:70%;
+    color:var(--ink);
+  }
+  .score-cell{
+    font-weight:600;
+    text-align:right;
+    width:30%;
+  }
+  @media print{
+    body *{ visibility:hidden; }
+    #progress-wrap, footer{ display:none; }
+    .no-print{ display:none !important; }
+    .report, .report *{ visibility:visible; }
+    .report{
+      display:block;
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      padding:20px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-wrap">
+  <div id="progress-track"><div id="progress-bar"></div></div>
+  <div id="step-counter"></div>
+</div>
+
+<main id="main"></main>
+
+<footer>Atendimento responsável: Vinicius Aquino — CRP 06-163396 (Neuropsicólogo / ABA)</footer>
+
+<script>
+// ============================================================
+// CONFIGURAÇÃO — edite antes de publicar
+// ============================================================
+const WHATSAPP_NUMBER = "5513997336098"; // número real do psicólogo
+const PSYCHOLOGIST_EMAIL = "psicologoviniciusaquino@gmail.com"; // e-mail real do psicólogo. Na 1ª resposta o FormSubmit manda um e-mail de ativação pra você confirmar (só uma vez).
+const CLINICAL_INFO = {
+  professionalName: "Vinicius Aquino",
+  crp: "06-163396",
+  specialties: ["Neuropsicólogo", "ABA"]
+};
+
+// ============================================================
+// DADOS DO FORMULÁRIO
+// ============================================================
+const STEPS = [
+  { id:"welcome", type:"welcome", title:"Seu cuidado começa aqui.",
+    description:"Para que eu possa te atender da melhor forma possível, preciso entender sua necessidade, suas preferências e o que é importante para você neste momento.\n\nEssas informações me ajudam a preparar o atendimento com cuidado desde o primeiro contato.\n\nO formulário é rápido, leva apenas alguns minutos, e é o primeiro passo para organizarmos o cuidado que faz sentido para você.\n\nAtendimento responsável: Psicólogo Vinicius Aquino (CRP 06-163396 - Neuropsicólogo / ABA).\n\nVamos começar?" },
+
+  { id:3, type:"date_input", title:"Qual é a data de nascimento? *" },
+  { id:4, type:"select", title:"Como se identifica? *",
+    options:[
+      { label:"Homem", value:"male" },
+      { label:"Mulher", value:"female" },
+      { label:"Não-Binário", value:"non_binary" },
+      { label:"Outro", value:"other" }
+    ]},
+
+  { id:6, type:"multiselect", title:"⏰ Qual horário funciona melhor para o seu atendimento? *",
+    description:"Atendo apenas no período noturno, a partir das 18h (horário de Brasília / UTC-3), pois durante o dia estou em horário comercial em Itanhaém. Selecione a(s) opção(ões) que funcionam para você.",
+    options:[
+      { label:"18h às 19h", value:"18h_19h" },
+      { label:"19h às 20h", value:"19h_20h" },
+      { label:"20h às 21h", value:"20h_21h" },
+      { label:"Sem preferência, qualquer horário noturno", value:"no_preference_night" }
+    ]},
+  { id:7, type:"select", title:"Para qual dos atendimentos abaixo você gostaria de realizar o agendamento? *",
+    description:"Priorizaremos seu atendimento na opção selecionada.",
+    options:[
+      { label:"Avaliação Psicológica", value:"avaliacao_psicologica" },
+      { label:"Psicoterapia Individual", value:"psicoterapia_individual" }
+    ]},
+  { id:8, type:"multiselect", maxChoices:2,
+    title:"Por gentileza, selecione até 2 itens que melhor descrevem o(s) motivo(s) que o(a) levaram a buscar atendimento em Psicoterapia. *",
+    description:"Por favor, considere o motivo que mais se aproxima do que você busca na sessão com o(a) psicoterapeuta. Faça entre 1 e 2 escolhas.",
+    options:[
+      { label:"Desenvolvimento pessoal", value:"personal_dev", detail:"p. ex., autoconhecimento, desenvolver habilidades sociais, de solução de problemas, de julgamento e tomada de decisão, de enfrentamento e regulação emocional, busca de novos interesses, etc" },
+      { label:"Situações de vida e transições", value:"life_transitions", detail:"p.ex., aposentadoria, adolescência, entrada na vida adulta, velhice, mudança de cidade/país, \"ninho vazio\", diagnóstico de doença, deficiência, etc" },
+      { label:"Problemas de relacionamento", value:"relationships", detail:"p.ex., entre pais e filhos, irmãos, amigos, com o(a) parceiro(a), colegas de trabalho, dificuldades de socialização, no estabelecimento de relacionamentos afetivos, etc" },
+      { label:"Problemas relacionados à área profissional", value:"professional", detail:"p.ex., aumento de produtividade, ameaça de perda de emprego, desemprego, etc" },
+      { label:"Dificuldades no exercício da parentalidade ou maternidade/paternidade", value:"parenting", detail:"p.ex., culpa materna/paterna, dúvidas na criação dos filhos, conflitos com filhos, adaptação ao puerpério, etc" },
+      { label:"Problemas relacionados ao comportamento alimentar e/ou imagem corporal", value:"eating_body", detail:"p.ex., supervalorização do peso corporal, forma corporal como critério fundamental da autoestima, sensação de perda de controle sobre a alimentação/compulsão alimentar, etc" },
+      { label:"Processo de luto ou perdas significativas", value:"grief", detail:"p.ex., morte de pessoas próximas, término de relacionamento, perda de emprego, perdas simbólicas, etc" },
+      { label:"Dependências químicas ou comportamentais", value:"addictions", detail:"p.ex., vícios, abuso e/ou dependência de álcool, tabaco, cafeína, drogas lícitas ou ilícitas, medicamentos controlados; e/ou em pornografia, uso de celular, redes sociais, jogos, apostas, internet, etc" },
+      { label:"Queixas ou disfunções sexuais", value:"sexual_complaints", detail:"p.ex., capacidade reduzida de responder sexualmente ou de experimentar prazer sexual, discrepância de desejo sexual, etc" }
+    ]},
+
+  { id:"disorders_selection", type:"multiselect", maxChoices:3,
+    title:"Selecione até 3 opções de diagnósticos ou áreas clínicas que possui ou deseja avaliar:",
+    description:"Faça entre 1 e 3 escolhas.",
+    options:[
+      { label:"Transtornos do Neurodesenvolvimento", value:"neurodev", detail:"Ex.: Transtorno do Espectro Autista, TDAH, Transtorno de Aprendizagem" },
+      { label:"Transtornos de Ansiedade", value:"anxiety", detail:"Ex.: Transtorno de Ansiedade Generalizada, Transtorno do Pânico, Fobia Social, Fobia Específica" },
+      { label:"Transtornos Depressivos", value:"depressive", detail:"Ex.: Transtorno Depressivo Maior, Distimia, Transtorno Disfórico Pré-Menstrual" },
+      { label:"Transtornos Bipolares e Relacionados", value:"bipolar", detail:"Ex.: Transtorno Bipolar tipo I e II, Ciclotimia" },
+      { label:"Transtornos Obsessivo-Compulsivos e Relacionados", value:"toc", detail:"Ex.: TOC, Transtorno Dismórfico Corporal, Acumulação, Tricotilomania" },
+      { label:"Transtornos Relacionados a Traumas e Estressores", value:"trauma", detail:"Ex.: TEPT, Transtorno de Apego Reativo, Transtorno de Ajustamento" },
+      { label:"Transtornos Disruptivos, do Controle de Impulsos e da Conduta", value:"disruptive", detail:"Ex.: Transtorno de Conduta, TOD, Transtorno Explosivo Intermitente" },
+      { label:"Transtornos da Personalidade", value:"personality", detail:"Ex.: Borderline, Antissocial, Narcisista, TPOC" },
+      { label:"Transtornos Dissociativos", value:"dissociative", detail:"Ex.: Transtorno Dissociativo de Identidade, Amnésia Dissociativa, Despersonalização/Desrealização" },
+      { label:"Transtornos do Sono-Vigília", value:"sleep", detail:"Ex.: Insônia, Narcolepsia, Apneia Obstrutiva, Parassonias, Hipersonia" },
+      { label:"Transtornos Relacionados ao Uso de Substâncias e Transtornos Aditivos", value:"substances", detail:"Ex.: Uso de Álcool, Cannabis, Jogo Patológico, Cocaína, Sedativos" },
+      { label:"Transtornos Alimentares", value:"eating", detail:"Ex.: Anorexia Nervosa, Bulimia Nervosa, Compulsão Alimentar" },
+      { label:"Disfunções Sexuais", value:"sexual", detail:"Ex.: Transtorno do Desejo Sexual Hipoativo, Disfunção Erétil" },
+      { label:"Manejo de pensamentos e/ou comportamentos autolesivos", value:"self_harm", detail:"p.ex., autolesão, verbalizações de desesperança, isolamento social, etc" },
+      { label:"Regulação do sono", value:"sleep_regulation", detail:"p.ex., dificuldade para iniciar e manter o sono; frequentemente acordar cansado, etc" },
+      { label:"Tratamento de Transtornos Mentais já diagnosticados", value:"diagnosed", detail:"p.ex., Depressão, Ansiedade, Bipolar, TDAH, TOC, TEA, etc" },
+      { label:"Transtornos Parafílicos", value:"paraphilic", detail:"Ex.: Transtorno Pedofílico, Voyeurismo, Exibicionismo" },
+      { label:"Transtornos Neurocognitivos", value:"neurocognitive", detail:"Ex.: Delirium, Alzheimer, Transtorno Neurocognitivo Leve" },
+      { label:"Espectro da Esquizofrenia e Outros Transtornos Psicóticos", value:"psychotic", detail:"Ex.: Esquizofrenia, Transtorno Esquizoafetivo, Transtorno Delirante" },
+      { label:"Transtornos Somáticos e Relacionados", value:"somatic", detail:"Ex.: Sintomas Somáticos, Conversão, Ansiedade de Doença" },
+      { label:"Outro", value:"other" }
+    ]},
+
+  { id:"intro_44_questions", type:"info",
+    title:"Para acompanhar de perto, e desde o início, os principais aspectos da sua saúde,",
+    description:"Porém, para que isso seja possível contamos com a sua colaboração para responder 44 afirmativas breves sobre os seus sintomas, como você tem se comportado, pensado e se sentido nas duas últimas semanas.\n\nPara cada uma delas, indique com que frequência essa experiência esteve presente em sua vida nesse período.\n\nReserve um momento tranquilo para ler com atenção todos os itens e responda da forma mais honesta possível, com base na sua vivência atual.\n\nNão há respostas certas ou erradas. O que importa é a sua sinceridade. Evite escolher respostas que você acredita serem socialmente esperadas ou que acha que gostaríamos de receber." },
+
+  { id:1, type:"scale", title:"1. Frequentemente me sinto sobrecarregado(a) pelos meus sentimentos *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:4, type:"scale", title:"4. Consegui manter uma rotina regular de sono *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:7, type:"scale", title:"7. Tive pensamentos sobre acabar com a minha própria vida *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:8, type:"scale", title:"8. Preocupei-me além do necessário e não consegui evitar e/ou afastar esses pensamentos *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:9, type:"scale", title:"9. Senti vontade de ter relações sexuais *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:10, type:"scale", title:"10. Esqueci de realizar as tarefas do dia a dia (p. ex., cumprir compromissos, pagar contas, responder e-mails ou mensagens) *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:11, type:"scale", title:"11. Não tive prazer no sexo *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:12, type:"scale", title:"12. Bebi álcool e/ou usei drogas a ponto de atrapalhar minhas atividades de trabalho, estudos e/ou tarefas domésticas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:13, type:"scale", title:"13. Mantive boas relações com meus familiares *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:15, type:"scale", title:"15. Perdi o interesse na maioria das coisas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:16, type:"scale", title:"16. Comparei o meu corpo com o de outras pessoas e me senti inferior *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:18, type:"scale", title:"18. Consegui lidar com emoções difíceis sem recorrer ao uso de álcool e/ou drogas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:19, type:"scale", title:"19. Fiz planos sobre como poderia me machucar gravemente ou morrer *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:20, type:"scale", title:"20. Reagi de forma agressiva diante das situações *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:21, type:"scale", title:"21. Senti sintomas físicos quando estava muito ansioso(a), como tremores, falta de ar, coração acelerado e outros *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:22, type:"scale", title:"22. Senti que minha vida tinha sentido *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:23, type:"scale", title:"23. Senti-me querido(a) pelas pessoas mais próximas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:24, type:"scale", title:"24. Estive livre de pensamentos sobre suicídio *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:25, type:"scale", title:"25. Fiquei sem usar álcool e/ou drogas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:26, type:"scale", title:"26. Afastei-me de pessoas importantes para mim por conta de brigas ou mágoas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:27, type:"scale", title:"27. Fiquei satisfeito(a) com o equilíbrio entre minhas obrigações e meu lazer *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:28, type:"scale", title:"28. Comecei, porém, não terminei várias tarefas ao longo do dia *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:29, type:"scale", title:"29. Consegui manter relações saudáveis *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:30, type:"scale", title:"30. Demorei muito tempo para adormecer depois de deitar *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:31, type:"scale", title:"31. Tive dificuldades funcionais durante o sexo (p. ex., orgasmo e ereção/lubrificação) *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:32, type:"scale", title:"32. Consumi mais álcool e/ou drogas do que planejava *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:34, type:"scale", title:"34. Consegui lidar com meus medos sem me paralisar *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:35, type:"scale", title:"35. Imaginei maneiras de tirar minha própria vida *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:36, type:"scale", title:"36. Consegui reservar momentos de descanso ao longo da semana *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:37, type:"scale", title:"37. Tive vontade de agredir algumas pessoas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:38, type:"scale", title:"38. Consegui aproveitar momentos de lazer durante a semana *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:39, type:"scale", title:"39. Usei estratégias para compensar o tanto que eu comi (p. ex., laxantes, diuréticos, indução de vômitos, jejum e outros) *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:40, type:"scale", title:"40. Percebi que minhas preocupações diárias diminuíram meu desejo sexual", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:41, type:"scale", title:"41. Senti-me desanimado(a) *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:42, type:"scale", title:"42. Evitei situações por medo de que algo ruim acontecesse *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:43, type:"scale", title:"43. Tive dificuldade para me concentrar por muito tempo em atividades que exigem atenção (p. ex., estudar ou trabalhar) *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+  { id:44, type:"scale", title:"44. Consegui controlar minha raiva *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nunca", legendMax:"6 → Sempre" },
+
+  { id:"intro_personality", type:"select",
+    title:"Para eu te acompanhar ainda melhor desde o início, conto com a sua colaboração.",
+    description:"Responda, por gentileza, mais 18 afirmativas breves sobre a sua personalidade, esses itens descrevem formas de pensar, sentir e agir que podem variar entre as pessoas *",
+    subtitle:"Você tem interesse em continuar o processo ou prefere preencher depois?",
+    options:[
+      { label:"Continuar com o preenchimento", value:"continue" },
+      { label:"Prefiro preencher depois", value:"later" }
+    ]},
+
+  { id:"p2", type:"scale", title:"2. Frequentemente ajo por impulso e me arrependo depois *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p3", type:"scale", title:"3. Tenho objetivos claros e sei o que quero alcançar na vida *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p4", type:"scale", title:"4. Me recupero rapidamente depois de me sentir chateado(a) ou irritado(a) *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p5", type:"scale", title:"5. Meus relacionamentos são caracterizados por muitas brigas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p6", type:"scale", title:"6. Tenho dificuldade para saber o que quero da vida *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p7", type:"scale", title:"7. Geralmente não tenho tempo para pensar no problema dos outros *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p8", type:"scale", title:"8. Sou capaz de manter relacionamentos duradouros e satisfatórios *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p10", type:"scale", title:"10. Geralmente demonstro minha raiva de maneira intensa *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p11", type:"scale", title:"11. Acho difícil me colocar no lugar das pessoas *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p12", type:"scale", title:"12. Tenho dificuldade de saber quem sou e no que acredito *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p13", type:"scale", title:"13. Penso antes de agir quando algo me irrita *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p14", type:"scale", title:"14. Minhas amizades geralmente acabam rapidamente por brigas ou mal-entendidos *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p15", type:"scale", title:"15. Tenho dificuldade para tomar decisões importantes *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p16", type:"scale", title:"16. Acho difícil me controlar quando tenho emoções negativas, como irritação ou tristeza *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p17", type:"scale", title:"17. Tenho clareza sobre quem sou *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" },
+  { id:"p18", type:"scale", title:"18. Tento entender como as pessoas estão se sentindo *", subtitle:"Considerando as duas últimas semanas:", legendMin:"1 → Nada a ver comigo", legendMax:"6 → Totalmente a ver comigo" }
+];
+
+// ============================================================
+// ESTADO
+// ============================================================
+let answers = {};
+let currentIndex = 0;
+let visitedPath = [0]; // para permitir "voltar" respeitando ramificação
+
+function visibleTotalEstimate(){
+  // se pulou a personalidade, não conta os itens p*
+  const skippedPersonality = answers["intro_personality"] === "later";
+  return STEPS.filter(s => !(skippedPersonality && typeof s.id === "string" && s.id.startsWith("p"))).length + 1; // +1 = tela final
+}
+
+function nextIndexFrom(idx){
+  let next = idx + 1;
+  if (answers["intro_personality"] === "later"){
+    while (next < STEPS.length && typeof STEPS[next].id === "string" && STEPS[next].id.startsWith("p")){
+      next++;
+    }
+  }
+  return next;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+const main = document.getElementById("main");
+const progressBar = document.getElementById("progress-bar");
+const stepCounter = document.getElementById("step-counter");
+
+function render(){
+  if (currentIndex >= STEPS.length){
+    renderFinal();
+    return;
+  }
+  const step = STEPS[currentIndex];
+  const seenSoFar = visitedPath.length;
+  const total = visibleTotalEstimate();
+  progressBar.style.width = Math.min(100, (seenSoFar / total) * 100) + "%";
+  stepCounter.textContent = "Etapa " + seenSoFar + " de " + total;
+
+  let html = '<div class="card">';
+
+  if (step.type === "welcome"){
+    html += `<h1 class="title">${esc(step.title)}</h1>`;
+    html += `<p class="description">${esc(step.description)}</p>`;
+    html += `<div class="nav-row"><button class="primary" id="btn-next">Vamos começar</button></div>`;
+  } else {
+    html += `<h1 class="title">${esc(step.title)}</h1>`;
+    if (step.subtitle) html += `<p class="subtitle">${esc(step.subtitle)}</p>`;
+    if (step.description) html += `<p class="description">${esc(step.description)}</p>`;
+
+    if (step.type === "text_input"){
+      const val = answers[step.id] || "";
+      html += `<div class="field"><input type="text" id="input-field" value="${escAttr(val)}" placeholder="Digite aqui"></div>`;
+    }
+    if (step.type === "date_input"){
+      const val = answers[step.id] || "";
+      html += `<div class="field"><input type="date" id="input-field" value="${escAttr(val)}"></div>`;
+    }
+    if (step.type === "select"){
+      html += '<div class="option-list">';
+      step.options.forEach(opt => {
+        const sel = answers[step.id] === opt.value ? "selected" : "";
+        html += `<button type="button" class="option ${sel}" data-value="${escAttr(opt.value)}">${esc(opt.label)}</button>`;
+      });
+      html += '</div>';
+    }
+    if (step.type === "multiselect"){
+      const current = answers[step.id] || [];
+      if (step.maxChoices) html += `<p class="maxchoice-note">Máximo de ${step.maxChoices} escolha(s).</p>`;
+      html += '<div class="option-list">';
+      step.options.forEach(opt => {
+        const sel = current.includes(opt.value) ? "selected" : "";
+        html += `<button type="button" class="option ${sel}" data-value="${escAttr(opt.value)}">${esc(opt.label)}${opt.detail ? `<span class="detail">${esc(opt.detail)}</span>` : ""}</button>`;
+      });
+      html += '</div>';
+    }
+    if (step.type === "scale"){
+      const current = answers[step.id];
+      html += '<div class="scale-row">';
+      for (let i = 1; i <= 6; i++){
+        const sel = current === i ? "selected" : "";
+        html += `<button type="button" class="scale-btn ${sel}" data-value="${i}">${i}</button>`;
+      }
+      html += '</div>';
+      html += `<div class="scale-legend"><span>${esc(step.legendMin)}</span><span>${esc(step.legendMax)}</span></div>`;
+    }
+    if (step.type === "info"){
+      // sem input, apenas continuar
+    }
+
+    html += `<div id="error-slot"></div>`;
+    html += `<div class="nav-row">`;
+    if (currentIndex > 0) html += `<button class="ghost" id="btn-back">Voltar</button>`;
+    html += `<button class="primary" id="btn-next">Continuar</button>`;
+    html += `</div>`;
+  }
+
+  html += '</div>';
+  main.innerHTML = html;
+  attachHandlers(step);
+}
+
+function attachHandlers(step){
+  const nextBtn = document.getElementById("btn-next");
+  const backBtn = document.getElementById("btn-back");
+
+  if (backBtn){
+    backBtn.addEventListener("click", () => {
+      visitedPath.pop();
+      currentIndex = visitedPath[visitedPath.length - 1];
+      render();
+    });
+  }
+
+  if (step.type === "select"){
+    document.querySelectorAll(".option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        answers[step.id] = btn.dataset.value;
+        render();
+      });
+    });
+  }
+
+  if (step.type === "multiselect"){
+    document.querySelectorAll(".option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        let current = answers[step.id] || [];
+        const val = btn.dataset.value;
+        if (current.includes(val)){
+          current = current.filter(v => v !== val);
+        } else {
+          if (step.maxChoices && current.length >= step.maxChoices){
+            showError(`Você pode escolher no máximo ${step.maxChoices} opção(ões).`);
+            return;
+          }
+          current = [...current, val];
+        }
+        answers[step.id] = current;
+        render();
+      });
+    });
+  }
+
+  if (step.type === "scale"){
+    document.querySelectorAll(".scale-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        answers[step.id] = parseInt(btn.dataset.value, 10);
+        render();
+      });
+    });
+  }
+
+  if (nextBtn){
+    nextBtn.addEventListener("click", () => {
+      if (!validate(step)) return;
+      if (step.type === "text_input" || step.type === "date_input"){
+        const el = document.getElementById("input-field");
+        answers[step.id] = el.value.trim();
+        if (!validate(step, true)) return;
+      }
+      goNext();
+    });
+  }
+}
+
+function validate(step, recheckInput){
+  const required = typeof step.title === "string" && step.title.includes("*");
+  if (!required && step.type !== "select") return true; // 'select' pode ser required sem asterisco no título em alguns casos, tratado abaixo
+
+  if (step.type === "text_input" || step.type === "date_input"){
+    const val = recheckInput ? answers[step.id] : (document.getElementById("input-field") ? document.getElementById("input-field").value.trim() : answers[step.id]);
+    if (required && !val){
+      showError("Este campo é obrigatório.");
+      return false;
+    }
+  }
+  if (step.type === "select" && required){
+    if (!answers[step.id]){
+      showError("Selecione uma opção para continuar.");
+      return false;
+    }
+  }
+  if (step.type === "multiselect" && required){
+    const val = answers[step.id] || [];
+    if (val.length === 0){
+      showError("Selecione ao menos uma opção.");
+      return false;
+    }
+  }
+  if (step.type === "scale" && required){
+    if (answers[step.id] === undefined){
+      showError("Selecione um valor de 1 a 6.");
+      return false;
+    }
+  }
+  return true;
+}
+
+function showError(msg){
+  const slot = document.getElementById("error-slot");
+  if (slot) slot.innerHTML = `<p class="error-msg">${esc(msg)}</p>`;
+}
+
+function goNext(){
+  const next = nextIndexFrom(currentIndex);
+  currentIndex = next;
+  visitedPath.push(currentIndex);
+  render();
+}
+
+function esc(s){
+  if (s === undefined || s === null) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function escAttr(s){
+  return esc(s).replace(/"/g,"&quot;");
+}
+
+// ============================================================
+// TELA FINAL — monta resumo e link do WhatsApp
+// ============================================================
+function labelFor(step, value){
+  if (!step.options) return value;
+  const found = step.options.find(o => o.value === value);
+  return found ? found.label : value;
+}
+
+function buildSummaryText(){
+  const lines = [];
+  lines.push("Nova triagem clínica — Consultório Vinicius Aquino");
+  lines.push("Profissional: " + CLINICAL_INFO.professionalName + " (CRP " + CLINICAL_INFO.crp + ")");
+  lines.push("");
+  lines.push("Nascimento: " + (answers[3] || "-"));
+  lines.push("Identificação de gênero: " + labelFor(STEPS.find(s=>s.id===4), answers[4]));
+  lines.push("");
+  const step6 = STEPS.find(s=>s.id===6);
+  lines.push("Preferência de horário: " + (answers[6]||[]).map(v=>labelFor(step6,v)).join(", "));
+  const step7 = STEPS.find(s=>s.id===7 && s.type==="select");
+  lines.push("Especialidade desejada: " + labelFor(step7, answers[7]));
+  const step8 = STEPS.find(s=>s.id===8);
+  lines.push("Motivos (psicoterapia): " + (answers[8]||[]).map(v=>labelFor(step8,v)).join(", "));
+  const stepD = STEPS.find(s=>s.id==="disorders_selection");
+  lines.push("Áreas clínicas de interesse: " + (answers["disorders_selection"]||[]).map(v=>labelFor(stepD,v)).join(", "));
+  lines.push("");
+  lines.push("--- Inventário clínico (44 itens, escala 1-6) ---");
+  const scaleIds = [1,4,7,8,9,10,11,12,13,15,16,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,34,35,36,37,38,39,40,41,42,43,44];
+  const scaleAnswers = scaleIds.map(id => id + ":" + (answers[id] !== undefined ? answers[id] : "-"));
+  lines.push(scaleAnswers.join(" | "));
+  lines.push("");
+  if (answers["intro_personality"] === "later"){
+    lines.push("Personalidade (18 itens): não preenchido agora — paciente optou por preencher depois.");
+  } else {
+    lines.push("--- Personalidade (18 itens, escala 1-6) ---");
+    const pIds = ["p2","p3","p4","p5","p6","p7","p8","p10","p11","p12","p13","p14","p15","p16","p17","p18"];
+    const pAnswers = pIds.map(id => id + ":" + (answers[id] !== undefined ? answers[id] : "-"));
+    lines.push(pAnswers.join(" | "));
+  }
+  return lines.join("\n");
+}
+
+function buildFullReportText(){
+  const today = new Date().toLocaleDateString("pt-BR");
+  const step6 = STEPS.find(s=>s.id===6);
+  const step7 = STEPS.find(s=>s.id===7 && s.type==="select");
+  const step8 = STEPS.find(s=>s.id===8);
+  const stepD = STEPS.find(s=>s.id==="disorders_selection");
+  const step4 = STEPS.find(s=>s.id===4);
+
+  const lines = [];
+  lines.push("RELATÓRIO DE TRIAGEM CLÍNICA");
+  lines.push("Consultório Vinicius Aquino — CRP " + CLINICAL_INFO.crp + " (Neuropsicólogo / ABA)");
+  lines.push("Data de geração: " + today);
+  lines.push("");
+  lines.push("--- Dados do paciente ---");
+  lines.push("Data de nascimento: " + (answers[3] || "-"));
+  lines.push("Identificação de gênero: " + (labelFor(step4, answers[4]) || "-"));
+  lines.push("");
+  lines.push("--- Preferências e motivo da busca ---");
+  lines.push("Preferência de horário: " + ((answers[6]||[]).map(v=>labelFor(step6,v)).join(", ") || "-"));
+  lines.push("Atendimento desejado: " + (labelFor(step7, answers[7]) || "-"));
+  lines.push("Motivos (psicoterapia): " + ((answers[8]||[]).map(v=>labelFor(step8,v)).join(", ") || "-"));
+  lines.push("Áreas clínicas de interesse: " + ((answers["disorders_selection"]||[]).map(v=>labelFor(stepD,v)).join(", ") || "-"));
+  lines.push("");
+  lines.push("--- Inventário clínico (44 itens, escala 1-6) ---");
+  const scaleIds = [1,4,7,8,9,10,11,12,13,15,16,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,34,35,36,37,38,39,40,41,42,43,44];
+  scaleIds.forEach(id => {
+    const s = STEPS.find(st => st.id === id && st.type === "scale");
+    lines.push((s ? s.title.replace(" *","") : id) + " — Resposta: " + (answers[id] !== undefined ? answers[id] : "-"));
+  });
+  lines.push("");
+  if (answers["intro_personality"] === "later"){
+    lines.push("--- Personalidade (18 itens): não preenchido — paciente optou por preencher depois. ---");
+  } else {
+    lines.push("--- Personalidade (18 itens, escala 1-6) ---");
+    const pIds = ["p2","p3","p4","p5","p6","p7","p8","p10","p11","p12","p13","p14","p15","p16","p17","p18"];
+    pIds.forEach(id => {
+      const s = STEPS.find(st => st.id === id && st.type === "scale");
+      lines.push((s ? s.title.replace(" *","") : id) + " — Resposta: " + (answers[id] !== undefined ? answers[id] : "-"));
+    });
+  }
+  return lines.join("\n");
+}
+
+async function sendAutomaticReport(reportText){
+  try{
+    const resp = await fetch("https://formsubmit.co/ajax/" + PSYCHOLOGIST_EMAIL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        _subject: "Nova triagem clínica — Consultório Vinicius Aquino",
+        relatorio: reportText
+      })
+    });
+    if (!resp.ok) throw new Error("Falha no envio");
+    return true;
+  } catch(e){
+    return false;
+  }
+}
+
+function buildReportHTML(){
+  const today = new Date().toLocaleDateString("pt-BR");
+  const step6 = STEPS.find(s=>s.id===6);
+  const step7 = STEPS.find(s=>s.id===7 && s.type==="select");
+  const step8 = STEPS.find(s=>s.id===8);
+  const stepD = STEPS.find(s=>s.id==="disorders_selection");
+  const step4 = STEPS.find(s=>s.id===4);
+
+  const scaleIds = [1,4,7,8,9,10,11,12,13,15,16,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,34,35,36,37,38,39,40,41,42,43,44];
+  const scaleRows = scaleIds.map(id => {
+    const s = STEPS.find(st => st.id === id && st.type === "scale");
+    return `<tr><td>${esc(s ? s.title.replace(" *","") : id)}</td><td class="score-cell">${answers[id] !== undefined ? answers[id] : "-"}</td></tr>`;
+  }).join("");
+
+  let personalityRows = `<tr><td colspan="2">Não preenchido — paciente optou por preencher depois.</td></tr>`;
+  if (answers["intro_personality"] !== "later"){
+    const pIds = ["p2","p3","p4","p5","p6","p7","p8","p10","p11","p12","p13","p14","p15","p16","p17","p18"];
+    personalityRows = pIds.map(id => {
+      const s = STEPS.find(st => st.id === id && st.type === "scale");
+      return `<tr><td>${esc(s ? s.title.replace(" *","") : id)}</td><td class="score-cell">${answers[id] !== undefined ? answers[id] : "-"}</td></tr>`;
+    }).join("");
+  }
+
+  return `
+    <div class="report" id="report-content">
+      <h2 class="report-h1">Relatório de Triagem Clínica</h2>
+      <p class="report-meta">Consultório Vinicius Aquino — Psicólogo, CRP ${esc(CLINICAL_INFO.crp)} (Neuropsicólogo / ABA)<br>Data de geração: ${esc(today)}</p>
+
+      <h3 class="report-h2">Dados do paciente</h3>
+      <table class="report-table">
+        <tr><td>Data de nascimento</td><td>${esc(answers[3] || "-")}</td></tr>
+        <tr><td>Identificação de gênero</td><td>${esc(labelFor(step4, answers[4]))}</td></tr>
+      </table>
+
+      <h3 class="report-h2">Preferências e motivo da busca</h3>
+      <table class="report-table">
+        <tr><td>Preferência de horário</td><td>${esc((answers[6]||[]).map(v=>labelFor(step6,v)).join(", ") || "-")}</td></tr>
+        <tr><td>Atendimento desejado</td><td>${esc(labelFor(step7, answers[7]) || "-")}</td></tr>
+        <tr><td>Motivos (psicoterapia)</td><td>${esc((answers[8]||[]).map(v=>labelFor(step8,v)).join(", ") || "-")}</td></tr>
+        <tr><td>Áreas clínicas de interesse</td><td>${esc((answers["disorders_selection"]||[]).map(v=>labelFor(stepD,v)).join(", ") || "-")}</td></tr>
+      </table>
+
+      <h3 class="report-h2">Inventário clínico — 44 itens (escala 1–6)</h3>
+      <table class="report-table"><tbody>${scaleRows}</tbody></table>
+
+      <h3 class="report-h2">Personalidade — 18 itens (escala 1–6)</h3>
+      <table class="report-table"><tbody>${personalityRows}</tbody></table>
+    </div>
+  `;
+}
+
+function renderFinal(){
+  progressBar.style.width = "100%";
+  stepCounter.textContent = "Concluído";
+
+  const summary = buildSummaryText();
+  const encoded = encodeURIComponent(summary);
+  const waLink = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encoded;
+
+  main.innerHTML = `
+    <div class="card no-print">
+      <h1 class="title">Obrigado por compartilhar essas informações.</h1>
+      <p class="description">Suas respostas estão prontas. Você pode enviá-las pelo WhatsApp e/ou baixar o relatório completo em PDF.</p>
+      <div class="nav-row">
+        <a class="primary" style="text-decoration:none;text-align:center;display:block;" href="${waLink}" target="_blank" rel="noopener">Enviar respostas pelo WhatsApp</a>
+      </div>
+      <div class="nav-row">
+        <button class="ghost" style="flex:1;" id="btn-print">Baixar relatório em PDF</button>
+      </div>
+      <details style="margin-top:16px;">
+        <summary style="cursor:pointer;font-size:13px;color:var(--ink-soft);">Ver mensagem resumida (WhatsApp)</summary>
+        <div class="final-summary">${esc(summary)}</div>
+      </details>
+      <p id="email-status" class="description" style="font-size:13px;margin-top:14px;">Enviando relatório por e-mail automaticamente…</p>
+      <div class="safety-note">
+        Se em algum momento você sentiu que precisa de apoio imediato, o CVV (Centro de Valorização da Vida) oferece escuta gratuita e sigilosa, 24h por dia, pelo telefone <strong>188</strong> ou pelo chat em <strong>cvv.org.br</strong>.
+      </div>
+    </div>
+    ${buildReportHTML()}
+  `;
+
+  const printBtn = document.getElementById("btn-print");
+  if (printBtn) printBtn.addEventListener("click", () => window.print());
+
+  const reportText = buildFullReportText();
+  sendAutomaticReport(reportText).then(ok => {
+    const statusEl = document.getElementById("email-status");
+    if (!statusEl) return;
+    if (ok){
+      statusEl.textContent = "Relatório enviado automaticamente por e-mail.";
+    } else {
+      statusEl.textContent = "Não foi possível enviar o e-mail automaticamente — use o WhatsApp ou o PDF acima para garantir que o relatório chegue.";
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
