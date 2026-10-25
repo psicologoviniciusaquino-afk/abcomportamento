@@ -19,51 +19,66 @@ export type Database = {
           antecedent: string
           antecedent_tags: string[]
           behavior: string
+          behavior_category: string
+          behavior_detail: string | null
           child_id: string | null
           consequence: string
           consequence_tags: string[]
           created_at: string
           environment_notes: string | null
           environment_tags: string[]
+          function_label: string | null
           hypothesized_function: string | null
           id: string
           owner_id: string
           phase: string | null
+          phase_label: string
           severity: number
+          severity_level: string
           timestamp: string
         }
         Insert: {
           antecedent?: string
           antecedent_tags?: string[]
           behavior: string
+          behavior_category?: string
+          behavior_detail?: string | null
           child_id?: string | null
           consequence?: string
           consequence_tags?: string[]
           created_at?: string
           environment_notes?: string | null
           environment_tags?: string[]
+          function_label?: string | null
           hypothesized_function?: string | null
           id?: string
           owner_id: string
           phase?: string | null
+          phase_label?: string
           severity?: number
+          severity_level?: string
           timestamp?: string
         }
         Update: {
           antecedent?: string
           antecedent_tags?: string[]
           behavior?: string
+          behavior_category?: string
+          behavior_detail?: string | null
           child_id?: string | null
           consequence?: string
           consequence_tags?: string[]
           created_at?: string
           environment_notes?: string | null
           environment_tags?: string[]
+          function_label?: string | null
           hypothesized_function?: string | null
           id?: string
           owner_id?: string
           phase?: string | null
+          phase_label?: string
           severity?: number
+          severity_level?: string
           timestamp?: string
         }
         Relationships: [
@@ -148,7 +163,7 @@ export type Database = {
         Row: {
           answers: Json
           applied_by: string
-          child_id: string | null
+          child_id: string
           child_name: string
           created_at: string
           id: string
@@ -156,13 +171,14 @@ export type Database = {
           owner_id: string
           primary_hypothesis: string
           responded_by: string
+          resultado_agregado: Json | null
           scores: number[]
           updated_at: string
         }
         Insert: {
           answers?: Json
           applied_by?: string
-          child_id?: string | null
+          child_id: string
           child_name?: string
           created_at?: string
           id?: string
@@ -170,13 +186,14 @@ export type Database = {
           owner_id: string
           primary_hypothesis?: string
           responded_by?: string
+          resultado_agregado?: Json | null
           scores?: number[]
           updated_at?: string
         }
         Update: {
           answers?: Json
           applied_by?: string
-          child_id?: string | null
+          child_id?: string
           child_name?: string
           created_at?: string
           id?: string
@@ -184,6 +201,7 @@ export type Database = {
           owner_id?: string
           primary_hypothesis?: string
           responded_by?: string
+          resultado_agregado?: Json | null
           scores?: number[]
           updated_at?: string
         }
@@ -250,6 +268,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      abc_map_behavior: { Args: { _b: string }; Returns: string }
+      abc_map_function: { Args: { _f: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
