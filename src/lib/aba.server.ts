@@ -171,9 +171,19 @@ export async function clearSessions(supabase: Client, userId: string, childId?: 
 
 // FAST assessments
 
+export interface FastAggregate {
+  social_atencao: number;
+  social_fuga: number;
+  automatico_sensorial: number;
+  automatico_dor: number;
+  hipotese_primaria: string;
+  respondido_por: string;
+  data: string;
+}
+
 export interface FastAssessment {
   id: string;
-  child_id: string | null;
+  child_id: string;
   child_name: string;
   applied_by: string;
   responded_by: string;
@@ -181,13 +191,14 @@ export interface FastAssessment {
   note_14: string;
   scores: number[];
   primary_hypothesis: string;
+  resultado_agregado: FastAggregate | null;
   created_at: string;
 }
 
 function toFast(row: Record<string, unknown>): FastAssessment {
   return {
     id: String(row.id),
-    child_id: row.child_id ? String(row.child_id) : null,
+    child_id: String(row.child_id),
     child_name: String(row.child_name ?? ""),
     applied_by: String(row.applied_by ?? ""),
     responded_by: String(row.responded_by ?? ""),
@@ -195,6 +206,7 @@ function toFast(row: Record<string, unknown>): FastAssessment {
     note_14: String(row.note_14 ?? ""),
     scores: (row.scores as number[]) ?? [0, 0, 0, 0],
     primary_hypothesis: String(row.primary_hypothesis ?? ""),
+    resultado_agregado: (row.resultado_agregado as FastAggregate | null) ?? null,
     created_at: String(row.created_at),
   };
 }
@@ -218,11 +230,21 @@ export async function listFastAssessments(
 export async function createFastAssessment(
   supabase: Client,
   userId: string,
-  input: Omit<FastAssessment, "id" | "created_at">
+  input: Omit<FastAssessment, "id" | "created_at" | "resultado_agregado">
 ): Promise<FastAssessment> {
+  const [a = 0, b = 0, c = 0, d = 0] = input.scores;
+  const resultado_agregado: FastAggregate = {
+    social_atencao: a,
+    social_fuga: b,
+    automatico_sensorial: c,
+    automatico_dor: d,
+    hipotese_primaria: input.primary_hypothesis,
+    respondido_por: input.responded_by,
+    data: new Date().toISOString(),
+  };
   const { data, error } = await supabase
     .from("fast_assessments")
-    .insert({ owner_id: userId, ...input })
+    .insert({ owner_id: userId, ...input, child_name: capitalizeName(input.child_name), resultado_agregado: resultado_agregado as never })
     .select()
     .single();
   if (error) throwDbError(error, "salvar avaliação FAST");
