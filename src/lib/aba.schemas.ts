@@ -10,11 +10,12 @@ export const childSchema = z.object({
 export const abcLogSchema = z.object({
   child_id: z.string().uuid().optional().nullable(),
   timestamp: z.string().datetime(),
-  phase: z.enum(["baseline", "intervention"]).optional().nullable(),
+  phase: z.enum(["Linha de base", "Intervenção", "Não classificado"]),
   antecedent: z.string().min(1).max(500),
   antecedentTags: z.array(z.string()).default([]),
-  behavior: z.string().min(1).max(500),
-  severity: z.number().int().min(1).max(5),
+  behaviorCategory: z.enum(["Agressão", "Autolesão", "Choro/grito", "Fuga/esquiva", "Estereotipia", "Recusa", "Outro"]),
+  behaviorDetail: z.string().max(500).optional().nullable(),
+  severity: z.enum(["Leve", "Média", "Alta"]),
   consequence: z.string().max(500),
   consequenceTags: z.array(z.string()).default([]),
   environmentTags: z.array(z.string()).default([]),
@@ -41,7 +42,7 @@ export const optionalChildIdSchema = z.object({
 });
 
 export const fastAssessmentSchema = z.object({
-  child_id: z.string().uuid().optional().nullable(),
+  child_id: z.string().uuid({ message: "Selecione o paciente" }),
   child_name: z.string().max(120).default(""),
   applied_by: z.string().max(120).default(""),
   responded_by: z.string().max(120).default(""),

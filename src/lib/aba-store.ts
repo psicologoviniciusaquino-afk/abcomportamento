@@ -23,19 +23,54 @@ import type { FastAssessment } from "./aba.server";
 
 export type { FastAssessment };
 
-export type FunctionType = "Atenção" | "Esquiva/fuga" | "Tangível" | "Sensorial";
+export type FunctionType = "Esquiva/fuga" | "Atenção" | "Tangível" | "Sensorial/automática";
+export const FUNCTIONS: FunctionType[] = ["Esquiva/fuga", "Atenção", "Tangível", "Sensorial/automática"];
 
-/** Normaliza rótulos legados (ex.: "Fuga") para os 4 nomes canônicos. */
+export const BEHAVIORS = ["Agressão", "Autolesão", "Choro/grito", "Fuga/esquiva", "Estereotipia", "Recusa"] as const;
+export type BehaviorCategory = (typeof BEHAVIORS)[number] | "Outro";
+
+export const SEVERITIES = ["Leve", "Média", "Alta"] as const;
+export type SeverityLevel = (typeof SEVERITIES)[number];
+
+export const PHASES = ["Linha de base", "Intervenção"] as const;
+export type Phase = (typeof PHASES)[number] | "Não classificado";
+
+/** Mapeia texto livre para a lista fixa; fora dela → "Outro". */
+export function mapBehavior(text: string): BehaviorCategory {
+  const v = text.trim().toLowerCase();
+  return BEHAVIORS.find((b) => b.toLowerCase() === v) ?? "Outro";
+}
+
+/** Exibição do comportamento: categoria, ou "Outro: detalhe". */
+export function behaviorLabel(l: { behaviorCategory: BehaviorCategory; behaviorDetail?: string | null }) {
+  return l.behaviorCategory === "Outro" && l.behaviorDetail ? `Outro: ${l.behaviorDetail}` : l.behaviorCategory;
+}
+
+/** Normaliza rótulos legados (ex.: "Fuga", "Sensorial") para os 4 nomes canônicos. */
 export function normalizeFunction(value?: string | null): FunctionType | "Pendente" {
   if (!value) return "Pendente";
   const v = value.trim().toLowerCase();
-  if (v === "fuga" || v === "esquiva" || v === "esquiva/fuga" || v === "esquiva / fuga") return "Esquiva/fuga";
-  if (v === "atenção" || v === "atencao") return "Atenção";
-  if (v === "tangível" || v === "tangivel") return "Tangível";
-  if (v === "sensorial") return "Sensorial";
+  if (v.includes("fuga") || v.includes("esquiva")) return "Esquiva/fuga";
+  if (v.startsWith("aten")) return "Atenção";
+  if (v.startsWith("tang")) return "Tangível";
+  if (v.startsWith("sensorial") || v.startsWith("autom")) return "Sensorial/automática";
   return "Pendente";
 }
-export type Phase = "baseline" | "intervention";
+
+/** Capitaliza nome próprio (trim + title case). Mesma regra do banco. */
+export function capitalizeName(name: string) {
+  return name
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+    .replace(/(^|\s)(\p{L})/gu, (_m, s: string, c: string) => s + c.toUpperCase());
+}
+
+/** "1 sessão" / "2 sessões" */
+export function plural(n: number, singular: string, pluralForm: string) {
+  return `${n} ${n === 1 ? singular : pluralForm}`;
+}
+
 export type FACondition = "Attention" | "Demand" | "Tangible" | "Play";
 
 export interface Child {
@@ -53,11 +88,12 @@ export interface ABCLog {
   owner_id: string;
   child_id?: string | null;
   timestamp: string;
-  phase?: Phase | null;
+  phase: Phase;
   antecedent: string;
   antecedentTags: string[];
-  behavior: string;
-  severity: number;
+  behaviorCategory: BehaviorCategory;
+  behaviorDetail?: string | null;
+  severity: SeverityLevel;
   consequence: string;
   consequenceTags: string[];
   environmentTags?: string[];
