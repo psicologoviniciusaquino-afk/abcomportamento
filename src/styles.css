@@ -39,6 +39,15 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  /* Cores fixas das 4 funções — usar em toda a aplicação */
+  --color-fn-escape: var(--fn-escape);
+  --color-fn-escape-soft: var(--fn-escape-soft);
+  --color-fn-attention: var(--fn-attention);
+  --color-fn-attention-soft: var(--fn-attention-soft);
+  --color-fn-tangible: var(--fn-tangible);
+  --color-fn-tangible-soft: var(--fn-tangible-soft);
+  --color-fn-sensory: var(--fn-sensory);
+  --color-fn-sensory-soft: var(--fn-sensory-soft);
 }
 
 :root {
@@ -73,6 +82,14 @@
   --chart-3: oklch(0.65 0.14 150);
   --chart-4: oklch(0.65 0.15 290);
   --chart-5: oklch(0.75 0.14 80);
+  --fn-escape: #C9722F;
+  --fn-escape-soft: #F7E3D0;
+  --fn-attention: #2E6DA4;
+  --fn-attention-soft: #DBE9F5;
+  --fn-tangible: #C99A2E;
+  --fn-tangible-soft: #F8ECD0;
+  --fn-sensory: #7A5CA8;
+  --fn-sensory-soft: #E8E0F3;
 }
 
 @layer base {
