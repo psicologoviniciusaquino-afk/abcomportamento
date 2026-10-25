@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import type { ABCLog, Child, FASession } from "./aba-store";
-import { inferFunctionFromTags, normalizeFunction } from "./aba-store";
+import type { ABCLog, BehaviorCategory, Child, FASession, Phase, SeverityLevel } from "./aba-store";
+import { capitalizeName, inferFunctionFromTags, normalizeFunction } from "./aba-store";
 import { throwDbError } from "./aba-errors";
 
 type Client = SupabaseClient<Database>;
@@ -24,16 +24,17 @@ function toCamelLog(row: Record<string, unknown>): ABCLog {
     owner_id: String(row.owner_id),
     child_id: row.child_id ? String(row.child_id) : null,
     timestamp: String(row.timestamp),
-    phase: (row.phase as "baseline" | "intervention" | null) ?? null,
+    phase: (row.phase_label as Phase) ?? "Não classificado",
     antecedent: String(row.antecedent),
     antecedentTags: (row.antecedent_tags as string[]) ?? [],
-    behavior: String(row.behavior),
-    severity: Number(row.severity),
+    behaviorCategory: (row.behavior_category as BehaviorCategory) ?? "Outro",
+    behaviorDetail: row.behavior_detail ? String(row.behavior_detail) : null,
+    severity: (row.severity_level as SeverityLevel) ?? "Média",
     consequence: String(row.consequence),
     consequenceTags: (row.consequence_tags as string[]) ?? [],
     environmentTags: (row.environment_tags as string[]) ?? [],
     environmentNotes: row.environment_notes ? String(row.environment_notes) : null,
-    hypothesizedFunction: normalizeFunction(row.hypothesized_function as string | null),
+    hypothesizedFunction: normalizeFunction((row.function_label ?? row.hypothesized_function) as string | null),
     created_at: String(row.created_at),
   };
 }
@@ -69,7 +70,7 @@ export async function createChild(
 ): Promise<Child> {
   const { data, error } = await supabase
     .from("children")
-    .insert({ owner_id: userId, ...input })
+    .insert({ owner_id: userId, ...input, name: capitalizeName(input.name) })
     .select()
     .single();
   if (error) throwDbError(error, "cadastrar paciente");
@@ -91,54 +92,40 @@ export async function listLogs(supabase: Client, userId: string, childId?: strin
   return (data || []).map((r) => toCamelLog(r as Record<string, unknown>));
 }
 
-export async function createLog(
-  supabase: Client,
-  userId: string,
-  input: Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">
-): Promise<ABCLog> {
-  const allTags = [...input.antecedentTags, ...input.consequenceTags];
-  const hypothesizedFunction = inferFunctionFromTags(allTags);
-  const row = {
-    owner_id: userId,
+type LogInput = Omit<ABCLog, "id" | "owner_id" | "hypothesizedFunction" | "created_at">;
+
+function toRow(input: LogInput) {
+  const fn = inferFunctionFromTags([...input.antecedentTags, ...input.consequenceTags]);
+  const detail = input.behaviorCategory === "Outro" ? input.behaviorDetail?.trim() || null : null;
+  return {
     child_id: input.child_id,
     timestamp: input.timestamp,
-    phase: input.phase,
     antecedent: input.antecedent,
     antecedent_tags: input.antecedentTags,
-    behavior: input.behavior,
-    severity: input.severity,
+    behavior_category: input.behaviorCategory,
+    behavior_detail: detail,
+    behavior: detail ?? input.behaviorCategory, // legado
+    severity_level: input.severity,
+    severity: input.severity === "Leve" ? 1 : input.severity === "Média" ? 3 : 5, // legado
+    phase_label: input.phase,
+    phase: input.phase === "Linha de base" ? "baseline" : input.phase === "Intervenção" ? "intervention" : null, // legado
     consequence: input.consequence,
     consequence_tags: input.consequenceTags,
     environment_tags: input.environmentTags ?? [],
     environment_notes: input.environmentNotes,
-    hypothesized_function: hypothesizedFunction,
+    function_label: fn === "Pendente" ? null : fn,
+    hypothesized_function: fn, // legado
   };
-  const { data, error } = await supabase.from("abc_logs").insert(row).select().single();
+}
+
+export async function createLog(supabase: Client, userId: string, input: LogInput): Promise<ABCLog> {
+  const { data, error } = await supabase.from("abc_logs").insert({ owner_id: userId, ...toRow(input) }).select().single();
   if (error) throwDbError(error, "salvar registro");
   return toCamelLog(data as Record<string, unknown>);
 }
 
-export async function updateLog(
-  supabase: Client,
-  _userId: string,
-  input: Omit<ABCLog, "owner_id" | "hypothesizedFunction" | "created_at">
-): Promise<ABCLog> {
-  const allTags = [...input.antecedentTags, ...input.consequenceTags];
-  const row = {
-    child_id: input.child_id,
-    timestamp: input.timestamp,
-    phase: input.phase,
-    antecedent: input.antecedent,
-    antecedent_tags: input.antecedentTags,
-    behavior: input.behavior,
-    severity: input.severity,
-    consequence: input.consequence,
-    consequence_tags: input.consequenceTags,
-    environment_tags: input.environmentTags ?? [],
-    environment_notes: input.environmentNotes,
-    hypothesized_function: inferFunctionFromTags(allTags),
-  };
-  const { data, error } = await supabase.from("abc_logs").update(row).eq("id", input.id).select().single();
+export async function updateLog(supabase: Client, _userId: string, input: LogInput & { id: string }): Promise<ABCLog> {
+  const { data, error } = await supabase.from("abc_logs").update(toRow(input)).eq("id", input.id).select().single();
   if (error) throwDbError(error, "atualizar registro");
   return toCamelLog(data as Record<string, unknown>);
 }
@@ -184,9 +171,19 @@ export async function clearSessions(supabase: Client, userId: string, childId?: 
 
 // FAST assessments
 
+export interface FastAggregate {
+  social_atencao: number;
+  social_fuga: number;
+  automatico_sensorial: number;
+  automatico_dor: number;
+  hipotese_primaria: string;
+  respondido_por: string;
+  data: string;
+}
+
 export interface FastAssessment {
   id: string;
-  child_id: string | null;
+  child_id: string;
   child_name: string;
   applied_by: string;
   responded_by: string;
@@ -194,13 +191,14 @@ export interface FastAssessment {
   note_14: string;
   scores: number[];
   primary_hypothesis: string;
+  resultado_agregado: FastAggregate | null;
   created_at: string;
 }
 
 function toFast(row: Record<string, unknown>): FastAssessment {
   return {
     id: String(row.id),
-    child_id: row.child_id ? String(row.child_id) : null,
+    child_id: String(row.child_id),
     child_name: String(row.child_name ?? ""),
     applied_by: String(row.applied_by ?? ""),
     responded_by: String(row.responded_by ?? ""),
@@ -208,6 +206,7 @@ function toFast(row: Record<string, unknown>): FastAssessment {
     note_14: String(row.note_14 ?? ""),
     scores: (row.scores as number[]) ?? [0, 0, 0, 0],
     primary_hypothesis: String(row.primary_hypothesis ?? ""),
+    resultado_agregado: (row.resultado_agregado as FastAggregate | null) ?? null,
     created_at: String(row.created_at),
   };
 }
@@ -231,11 +230,21 @@ export async function listFastAssessments(
 export async function createFastAssessment(
   supabase: Client,
   userId: string,
-  input: Omit<FastAssessment, "id" | "created_at">
+  input: Omit<FastAssessment, "id" | "created_at" | "resultado_agregado">
 ): Promise<FastAssessment> {
+  const [a = 0, b = 0, c = 0, d = 0] = input.scores;
+  const resultado_agregado: FastAggregate = {
+    social_atencao: a,
+    social_fuga: b,
+    automatico_sensorial: c,
+    automatico_dor: d,
+    hipotese_primaria: input.primary_hypothesis,
+    respondido_por: input.responded_by,
+    data: new Date().toISOString(),
+  };
   const { data, error } = await supabase
     .from("fast_assessments")
-    .insert({ owner_id: userId, ...input })
+    .insert({ owner_id: userId, ...input, child_name: capitalizeName(input.child_name), resultado_agregado: resultado_agregado as never })
     .select()
     .single();
   if (error) throwDbError(error, "salvar avaliação FAST");
