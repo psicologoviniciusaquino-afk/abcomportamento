@@ -19,9 +19,9 @@ import {
   createFastAssessmentFn,
   deleteFastAssessmentFn,
 } from "./aba.functions";
-import type { FastAssessment } from "./aba.server";
+import type { FastAssessment, FastAggregate } from "./aba.server";
 
-export type { FastAssessment };
+export type { FastAssessment, FastAggregate };
 
 export type FunctionType = "Esquiva/fuga" | "Atenção" | "Tangível" | "Sensorial/automática";
 export const FUNCTIONS: FunctionType[] = ["Esquiva/fuga", "Atenção", "Tangível", "Sensorial/automática"];
@@ -263,7 +263,7 @@ export function useFastAssessments(childId?: string | null) {
   const onDeleteError = useErrorToast("excluir avaliação FAST");
 
   const addMutation = useMutation({
-    mutationFn: (input: Omit<FastAssessment, "id" | "created_at">) => create({ data: input }),
+    mutationFn: (input: Omit<FastAssessment, "id" | "created_at" | "resultado_agregado">) => create({ data: input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["fast_assessments"] }),
     onError: onSaveError,
   });
@@ -280,7 +280,7 @@ export function useFastAssessments(childId?: string | null) {
     error: error as Error | null,
     refetch,
     isSaving: addMutation.isPending,
-    add: (input: Omit<FastAssessment, "id" | "created_at">) => addMutation.mutateAsync(input),
+    add: (input: Omit<FastAssessment, "id" | "created_at" | "resultado_agregado">) => addMutation.mutateAsync(input),
     remove: (id: string) => removeMutation.mutateAsync(id),
   };
 }
@@ -326,11 +326,11 @@ export function inferFunctionFromTags(tags: string[]): FunctionType | "Pendente"
   if (/(retirada da tarefa|pausa|redução da exigência|retirada do ambiente|demanda removida|evasão|fuga)/.test(t)) return "Esquiva/fuga";
   if (/(atenção social|atenção verbal|contato físico|proximidade|atenção dada|retirada da atenção)/.test(t)) return "Atenção";
   if (/(acesso ao objeto|entrega do objeto|alimento|item fornecido|tangível|retirada do objeto)/.test(t)) return "Tangível";
-  if (/(nenhuma consequência|ignorado|sozinho|sem estímulos|excesso de estímulos|desconforto)/.test(t)) return "Sensorial";
+  if (/(nenhuma consequência|ignorado|sozinho|sem estímulos|excesso de estímulos|desconforto)/.test(t)) return "Sensorial/automática";
   if (/(demanda|transição|rotina|instrução|atividade aversiva)/.test(t)) return "Esquiva/fuga";
   if (/(retirada de atenção|desvio de atenção|interação social)/.test(t)) return "Atenção";
   if (/(restrição de acesso|atraso|espera|item negado|objeto preferido)/.test(t)) return "Tangível";
-  if (/(sozinho)/.test(t)) return "Sensorial";
+  if (/(sozinho)/.test(t)) return "Sensorial/automática";
   return "Pendente";
 }
 
